@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人物关系图 - 现代 | 梦梦的知识图谱</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0f0f23 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #container { width: 100vw; height: 100vh; position: relative; }
+        #graph { width: 100%; height: 100%; }
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.15);
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            color: #fff;
+            z-index: 100;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .back-link:hover { background: rgba(255,255,255,0.25); }
+        #search-box {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+        #search-input {
+            width: 280px;
+            padding: 12px 20px;
+            border: 2px solid rgba(100,180,255,0.3);
+            border-radius: 25px;
+            background: rgba(20,30,50,0.9);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+        #search-input:focus { border-color: rgba(100,180,255,0.8); }
+        #search-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: #fff;
+            cursor: pointer;
+        }
+        #stats-box {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(20,30,50,0.95);
+            border: 1px solid rgba(100,180,255,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            min-width: 160px;
+        }
+        #stats-box h3 { color: #fff; margin-bottom: 10px; font-size: 14px; }
+        .stat-row { display: flex; justify-content: space-between; color: #aaa; font-size: 12px; margin: 4px 0; }
+        .stat-value { color: #4a90e2; font-weight: bold; }
+        .node { cursor: pointer; }
+        .node:hover { filter: brightness(1.3); }
+        .node-circle { stroke: #fff; stroke-width: 2px; }
+        .node-label { fill: #fff; font-size: 11px; text-anchor: middle; pointer-events: none; }
+        .link { stroke-opacity: 0.6; }
+        .link-label { fill: #aaa; font-size: 10px; text-anchor: middle; pointer-events: none; }
+        #tooltip {
+            position: absolute;
+            background: rgba(20,30,50,0.98);
+            border: 1px solid rgba(100,180,255,0.5);
+            border-radius: 10px;
+            padding: 15px;
+            max-width: 300px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 200;
+        }
+        #tooltip h4 { color: #ffd700; margin-bottom: 8px; font-size: 16px; }
+        #tooltip p { color: #ccc; font-size: 13px; line-height: 1.4; margin: 5px 0; }
+        #tooltip .era { color: #888; font-size: 12px; margin-top: 8px; }
+        .empty-state { text-align: center; padding: 100px; color: #666; }
+    </style>
+</head>
+<body>
+    <a href="首页.html" class="back-link">← 返回首页</a>
+    <div id="search-box">
+        <input type="text" id="search-input" placeholder="搜索人物名称...">
+        <button id="search-btn">搜索</button>
+    </div>
+    <div id="stats-box">
+        <h3>📊 图谱统计</h3>
+        <div class="stat-row"><span>人物数量</span><span class="stat-value">72</span></div>
+        <div class="stat-row"><span>关系数量</span><span class="stat-value">21</span></div>
+    </div>
+    <div id="container">
+        <svg id="graph"></svg>
+    </div>
+    <div id="tooltip"></div>
+    
+    <script>
+        const nodes = [{"id": "person_25", "name": "安娜", "era": "现代", "desc": "《回忆中的玛尼》主人公，一个敏感孤独的女孩"}, {"id": "person_26", "name": "玛妮", "era": "现代", "desc": "安娜在海边遇到的神秘女孩，是安娜的曾祖母"}, {"id": "person_27", "name": "佩格太太", "era": "现代", "desc": "安娜的养母的姐妹，照顾安娜"}, {"id": "person_28", "name": "普雷斯顿太太", "era": "现代", "desc": "付钱照顾安娜的人"}, {"id": "person_29", "name": "桑德拉", "era": "现代", "desc": "与安娜起过冲突的邻居女孩"}, {"id": "person_30", "name": "多余儿", "era": "现代", "desc": "在海边划船的男孩，救了安娜"}, {"id": "person_31", "name": "西拉", "era": "现代", "desc": "林赛太太的女儿，与安娜成为朋友"}, {"id": "person_32", "name": "林赛太太", "era": "现代", "desc": "海边别墅的新住户，是玛妮的后人"}, {"id": "person_33", "name": "爱德华", "era": "现代", "desc": "玛妮的表兄，后来与玛妮结婚"}, {"id": "person_34", "name": "埃斯梅", "era": "现代", "desc": "玛妮的女儿，任性，婚姻不幸"}, {"id": "person_35", "name": "南", "era": "现代", "desc": "玛妮童年时期的看护，虐待玛妮"}, {"id": "person_74", "name": "安迪", "era": "现代", "desc": "《凶火》主人公之一，拥有遥控他人意志的超能力"}, {"id": "person_75", "name": "薇姬", "era": "现代", "desc": "安迪的妻子，拥有感知心灵的异能"}, {"id": "person_76", "name": "查莉", "era": "现代", "desc": "安迪和薇姬的女儿，拥有点燃物体的可怕能力"}, {"id": "person_77", "name": "雨鸟", "era": "现代", "desc": "'商店'组织的特工，假扮护工接近查莉"}, {"id": "person_78", "name": "萨提亚", "era": "现代", "desc": "Virginia Satir，美国心理治疗师，家庭治疗创始人，萨提亚模式创立者"}, {"id": "person_79", "name": "秦恬", "era": "现代", "desc": "《战起1938》女主角，来自21世纪的宅女，意外穿越到二战时期的德国"}, {"id": "person_80", "name": "奥古斯汀·冯·卡尔曼", "era": "现代", "desc": "《战起1938》人物，德国军官，外表俊美，实则灵魂是中国野战军军官罗桐"}, {"id": "person_81", "name": "海因茨上尉", "era": "现代", "desc": "《战起1938》人物，性格古怪，与秦恬、奥古斯汀在战争中命运交织"}, {"id": "person_90", "name": "罗桐", "era": "现代", "desc": "奥古斯汀的真实身份，中国野战军军官，灵魂穿越到德国军官体内"}, {"id": "person_aositeluofu", "name": "奥斯特洛夫斯基", "era": "现代", "desc": "尼古拉·阿列克谢耶维奇·奥斯特洛夫斯基（1904-1936），苏联著名无产阶级作家，《钢铁是怎样炼成..."}, {"id": "person_baoer", "name": "保尔·柯察金", "era": "现代", "desc": "《钢铁是怎样炼成的》主人公，具有坚定革命信念、顽强意志的无产阶级战士"}, {"id": "person_dongniya", "name": "冬妮娅", "era": "现代", "desc": "《钢铁是怎样炼成的》中的人物，出身资产阶级家庭，与保尔有过恋情"}, {"id": "person_zhufulai", "name": "朱赫来", "era": "现代", "desc": "《钢铁是怎样炼成的》中的人物，布尔什维克党员，保尔革命道路上的引路人"}, {"id": "person_chenbaisheng", "name": "陈柏生", "era": "现代", "desc": "人民日报记者，1926年出生于安徽安庆，毕业于清华大学中文系，写过《新旧协和》"}, {"id": "person_langjinghe", "name": "郎景和", "era": "现代", "desc": "1940年生，中国工程院院士，北京协和医院妇产科主任医师、教授，被誉为'中国妇产科内镜之父'"}, {"id": "person_tanxianjie", "name": "谭先杰", "era": "现代", "desc": "北京协和医院妇产科肿瘤医生，郎景和的学生，著有《致母亲：一个协和医生的故事》"}, {"id": "person_changqing", "name": "常青", "era": "现代", "desc": "医学博士，毕业于中国协和医科大学八年制医学系，在美国做博士后研究，《协和医事》作者"}, {"id": "person_songhongzhao", "name": "宋鸿钊", "era": "现代", "desc": "北京协和医学院著名妇产科专家，'文革'期间被批斗但仍坚守医者职责"}, {"id": "person_chenzhiqian", "name": "陈志潜", "era": "现代", "desc": "协和毕业后骑毛驴到定县做农村卫生调查，为中国农村公共卫生事业奠定基础"}, {"id": "person_lizongen", "name": "李宗恩", "era": "现代", "desc": "1941年任协和代理校长，1951年1月20日代表协和发报'本院收归国有'"}, {"id": "person_wuyingkai", "name": "吴英恺", "era": "现代", "desc": "著名外科专家，提出好医生标准：公、勤、严、廉，创办安贞医院"}, {"id": "person_92", "name": "余宗其", "era": "现代", "desc": "中南财经政法大学教授，《法说聊斋志异》作者"}, {"id": "person_93", "name": "汪文宣", "era": "现代", "desc": "《寒夜》主人公，善良懦弱的知识分子，在贫病交加中孤独死去"}, {"id": "person_94", "name": "曾树生", "era": "现代", "desc": "《寒夜》人物，汪文宣之妻，追求自由与自我价值"}, {"id": "person_95", "name": "巴金", "era": "现代", "desc": "中国现代著名作家，《寒夜》《激流三部曲》作者"}, {"id": "person_96", "name": "哈洛韦尔", "era": "现代", "desc": "爱德华·哈洛韦尔，哈佛医学院教授，注意力缺失领域著名专家，《分心不是我的错》作者之一"}, {"id": "person_97", "name": "瑞提", "era": "现代", "desc": "约翰·瑞提，哈佛医学院精神科助理教授，《分心不是我的错》作者之一"}, {"id": "person_98", "name": "拉比", "era": "现代", "desc": "国家二级心理咨询师，中级心理治疗师，《聪明却坐不住的孩子》作者"}, {"id": "person_99", "name": "巴克利", "era": "现代", "desc": "多动症领域权威专家，《聪明却坐不住的孩子》中家庭教育八步法来源"}, {"id": "person_109", "name": "白嘉轩", "era": "现代", "desc": "《白鹿原》主人公，白鹿家族族长，坚守传统道德"}, {"id": "person_110", "name": "鹿子霖", "era": "现代", "desc": "《白鹿原》人物，白嘉轩的对手，精于算计"}, {"id": "person_111", "name": "白灵", "era": "现代", "desc": "《白鹿原》人物，白嘉轩之女，投身革命的进步女性"}, {"id": "person_112", "name": "鹿兆鹏", "era": "现代", "desc": "《白鹿原》人物，鹿子霖之子，坚定的共产党人"}, {"id": "person_113", "name": "陈忠实", "era": "现代", "desc": "《白鹿原》作者，当代著名作家"}, {"id": "person_114", "name": "田小娥", "era": "现代", "desc": "《白鹿原》人物，悲剧女性形象"}, {"id": "person_115", "name": "周志明", "era": "现代", "desc": "《便衣警察》主人公，年轻的公安民警"}, {"id": "person_116", "name": "海岩", "era": "现代", "desc": "著名作家，《便衣警察》《河流如血》《玉观音》等作者"}, {"id": "person_117", "name": "陆保良", "era": "现代", "desc": "《河流如血》主人公，在亲情与道义间挣扎成长"}, {"id": "person_118", "name": "陆为国", "era": "现代", "desc": "《河流如血》人物，陆保良之父，刚正不阿的老警察"}, {"id": "person_119", "name": "法齐娅·库菲", "era": "现代", "desc": "阿富汗唯一女性国会议长，《我不要你死于一事无成》作者"}, {"id": "person_123", "name": "胡狼拜月", "era": "现代", "desc": "《刘禹锡传》作者"}, {"id": "person_124", "name": "李敖", "era": "现代", "desc": "台湾著名学者、作家，以笔为剑的批判者"}, {"id": "person_125", "name": "梅吉", "era": "现代", "desc": "《荆棘鸟》女主人公，追寻禁忌之爱的女性"}, {"id": "person_126", "name": "拉尔夫", "era": "现代", "desc": "《荆棘鸟》人物，天主教神父，后升任红衣主教"}, {"id": "person_127", "name": "考琳·麦卡洛", "era": "现代", "desc": "澳大利亚作家，《荆棘鸟》作者"}, {"id": "person_128", "name": "菲奥娜", "era": "现代", "desc": "《荆棘鸟》人物，克利里家族的母亲"}, {"id": "person_129", "name": "冯啸辰", "era": "现代", "desc": "《大国重工》主人公，穿越者，用专业知识推动中国工业发展"}, {"id": "person_130", "name": "齐橙", "era": "现代", "desc": "《大国重工》作者，中国社科院工业经济研究所博士"}, {"id": "person_133", "name": "刘士欣", "era": "现代", "desc": "《好看的中国历史故事》作者"}, {"id": "person_fengyitong", "name": "冯亦同", "era": "当代", "desc": "南京作家、诗人，《朱枫传》作者。"}, {"id": "person_xiangsi", "name": "向斯", "era": "当代", "desc": "故宫博物院研究员，《这里是故宫》主编。"}, {"id": "person_matthewdesmond", "name": "马修·德斯蒙德", "era": "当代", "desc": "美国普林斯顿大学社会学教授，《制造贫困》作者。"}, {"id": "person_wangwan", "name": "王晚", "era": "当代", "desc": "《跑外卖》作者，2024年失业后跑外卖的女骑手。"}, {"id": "person_zihe", "name": "子禾", "era": "当代", "desc": "《异乡人》作者，十年北漂经历者。"}, {"id": "person_yinhuang", "name": "英惠", "era": "当代", "desc": "《素食者》女主人公，因噩梦拒绝吃肉，象征性反抗父权暴力。"}, {"id": "person_renhuiai", "name": "仁惠", "era": "当代", "desc": "《素食者》人物，英惠的姐姐，最终觉醒。"}, {"id": "person_hanshuxin", "name": "韩江", "era": "当代", "desc": "韩国作家，2024年获诺贝尔文学奖，《素食者》作者。"}, {"id": "person_jiaboermaite", "name": "加博尔·马特", "era": "当代", "desc": "成瘾心理学专家，《空洞的心》作者。"}, {"id": "person_damasio", "name": "安东尼奥·达马西奥", "era": "当代", "desc": "神经学家，对成瘾与情感有深入研究。"}, {"id": "person_kelisi", "name": "克里斯·阿纳德", "era": "当代", "desc": "美国社会学家，《美国底层》作者。"}, {"id": "person_shalie", "name": "谢莉", "era": "当代", "desc": "《美国底层》中的人物，底层民众代表，信仰上帝作为精神寄托。"}];
+        const links = [{"source": "person_25", "target": "person_26", "relation": "相遇", "desc": "安娜在海边与玛妮相遇并成为朋友"}, {"source": "person_25", "target": "person_27", "relation": "被照顾", "desc": "安娜住在佩格太太家"}, {"source": "person_25", "target": "person_28", "relation": "被照顾", "desc": "普雷斯顿太太付钱照顾安娜"}, {"source": "person_25", "target": "person_30", "relation": "被救", "desc": "多余儿救了溺水的安娜"}, {"source": "person_25", "target": "person_31", "relation": "朋友", "desc": "安娜与西拉成为朋友"}, {"source": "person_31", "target": "person_32", "relation": "母女", "desc": "西拉是林赛太太的女儿"}, {"source": "person_26", "target": "person_33", "relation": "夫妻", "desc": "玛妮与表兄爱德华结婚"}, {"source": "person_26", "target": "person_34", "relation": "母女", "desc": "玛妮生下女儿埃斯梅"}, {"source": "person_26", "target": "person_35", "relation": "被虐待", "desc": "看护南虐待玛妮"}, {"source": "person_74", "target": "person_75", "relation": "夫妻", "desc": "安迪与薇姬是夫妻"}, {"source": "person_74", "target": "person_76", "relation": "父女", "desc": "安迪是查莉的父亲"}, {"source": "person_75", "target": "person_76", "relation": "母女", "desc": "薇姬是查莉的母亲"}, {"source": "person_79", "target": "person_80", "relation": "相爱", "desc": "秦恬与奥古斯汀在乱世中产生深厚感情"}, {"source": "person_79", "target": "person_81", "relation": "情感羁绊", "desc": "秦恬与海因茨上尉产生特殊情感羁绊"}, {"source": "person_80", "target": "person_90", "relation": "灵魂", "desc": "奥古斯汀的灵魂是中国军官罗桐"}, {"source": "person_baoer", "target": "person_zhufulai", "relation": "师徒", "desc": "朱赫来教会保尔拳击和革命知识"}, {"source": "person_baoer", "target": "person_dongniya", "relation": "恋人", "desc": "保尔与冬妮娅曾有美好恋情"}, {"source": "person_tanxianjie", "target": "person_langjinghe", "relation": "师徒", "desc": "谭先杰是郎景和的学生"}, {"source": "person_93", "target": "person_94", "relation": "夫妻", "desc": "汪文宣与曾树生是夫妻"}, {"source": "person_109", "target": "person_110", "relation": "对手", "desc": "白嘉轩与鹿子霖是对立的两大家族族长"}, {"source": "person_125", "target": "person_126", "relation": "禁忌之恋", "desc": "梅吉与拉尔夫之间存在宗教禁忌的爱情"}];
+        
+        const relationColors = {"师徒": "#4CAF50", "夫妻": "#E91E63", "父子": "#FF9800", "兄弟": "#9C27B0", "对抗": "#F44336", "评价": "#00BCD4", "朋友": "#8BC34A", "同事": "#607D8B", "师生": "#4CAF50", "暗恋": "#E91E63", "暗恋对象": "#E91E63", "恋人": "#E91E63", "爱人": "#E91E63", "女友": "#E91E63", "青梅竹马": "#E91E63", "作者": "#9C27B0", "主人公": "#2196F3", "参与": "#FF5722", "关联": "#795548", "影响": "#00BCD4", "所属朝代": "#607D8B", "典故关联": "#FFC107", "关联事件": "#FFC107", "对立": "#F44336", "引用": "#9E9E9E", "默认": "#888888"};
+        
+        if (nodes.length === 0) {
+            document.getElementById('graph').outerHTML = '<div class="empty-state"><h2>暂无人物数据</h2><p>该时代暂无可视化的人物关系</p></div>';
+        } else {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
+            const svg = d3.select('#graph')
+                .attr('width', width)
+                .attr('height', height);
+            
+            // 添加缩放
+            const g = svg.append('g');
+            svg.call(d3.zoom().scaleExtent([0.3, 3]).on('zoom', (event) => {
+                g.attr('transform', event.transform);
+            }));
+            
+            // 力导向模拟
+            const simulation = d3.forceSimulation(nodes)
+                .force('link', d3.forceLink(links).id(d => d.id).distance(120))
+                .force('charge', d3.forceManyBody().strength(-300))
+                .force('center', d3.forceCenter(width/2, height/2))
+                .force('collision', d3.forceCollide().radius(40));
+            
+            // 连线
+            const link = g.append('g')
+                .selectAll('line')
+                .data(links)
+                .join('line')
+                .attr('class', 'link')
+                .attr('stroke', d => relationColors[d.relation] || relationColors['默认'])
+                .attr('stroke-width', 2);
+            
+            // 连线标签
+            const linkLabel = g.append('g')
+                .selectAll('text')
+                .data(links)
+                .join('text')
+                .attr('class', 'link-label')
+                .text(d => d.relation)
+                .attr('font-size', '10px')
+                .attr('fill', '#888');
+            
+            // 节点组
+            const node = g.append('g')
+                .selectAll('g')
+                .data(nodes)
+                .join('g')
+                .attr('class', 'node')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+            
+            // 节点圆
+            node.append('circle')
+                .attr('class', 'node-circle')
+                .attr('r', 20)
+                .attr('fill', d => {
+                    if (d.era.includes('汉') || d.era.includes('秦') || d.era.includes('周') || d.era.includes('战国') || d.era.includes('上古') || d.era.includes('春秋')) return '#e74c3c';
+                    if (d.era.includes('魏') || d.era.includes('晋') || d.era.includes('南北朝')) return '#9b59b6';
+                    if (d.era.includes('唐') || d.era.includes('宋') || d.era.includes('元')) return '#f39c12';
+                    if (d.era.includes('明') || d.era.includes('清') || d.era.includes('近代')) return '#27ae60';
+                    if (d.era.includes('现代') || d.era.includes('当代')) return '#3498db';
+                    return '#95a5a6';
+                });
+            
+            // 节点标签
+            node.append('text')
+                .attr('class', 'node-label')
+                .attr('dy', 35)
+                .text(d => d.name);
+            
+            // 节点交互
+            node.on('mouseover', function(event, d) {
+                const tooltip = document.getElementById('tooltip');
+                tooltip.style.opacity = 1;
+                tooltip.style.left = (event.pageX + 15) + 'px';
+                tooltip.style.top = (event.pageY - 10) + 'px';
+                tooltip.innerHTML = `<h4>${d.name}</h4><p>${d.desc}</p><div class="era">📅 ${d.era}</div>`;
+                
+                // 高亮相关连线
+                link.attr('stroke-opacity', l => 
+                    l.source.id === d.id || l.target.id === d.id ? 1 : 0.15);
+                linkLabel.attr('fill-opacity', l =>
+                    l.source.id === d.id || l.target.id === d.id ? 1 : 0.15);
+            })
+            .on('mouseout', function() {
+                document.getElementById('tooltip').style.opacity = 0;
+                link.attr('stroke-opacity', 0.6);
+                linkLabel.attr('fill-opacity', 1);
+            });
+            
+            // 更新位置
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+                
+                linkLabel
+                    .attr('x', d => (d.source.x + d.target.x) / 2)
+                    .attr('y', d => (d.source.y + d.target.y) / 2);
+                
+                node.attr('transform', d => `translate(${d.x},${d.y})`);
+            });
+            
+            // 拖拽函数
+            function dragstarted(event) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                event.subject.fx = event.subject.x;
+                event.subject.fy = event.subject.y;
+            }
+            function dragged(event) {
+                event.subject.fx = event.x;
+                event.subject.fy = event.y;
+            }
+            function dragended(event) {
+                if (!event.active) simulation.alphaTarget(0);
+                event.subject.fx = null;
+                event.subject.fy = null;
+            }
+            
+            // 搜索功能
+            document.getElementById('search-btn').addEventListener('click', searchNode);
+            document.getElementById('search-input').addEventListener('keypress', e => {
+                if (e.key === 'Enter') searchNode();
+            });
+            
+            function searchNode() {
+                const name = document.getElementById('search-input').value.trim();
+                if (!name) return;
+                
+                const found = nodes.find(n => n.name.includes(name));
+                if (found) {
+                    const nodeData = nodes.find(n => n.id === found.id);
+                    nodeData.fx = width / 2;
+                    nodeData.fy = height / 2;
+                    simulation.alpha(1).restart();
+                    setTimeout(() => {
+                        nodeData.fx = null;
+                        nodeData.fy = null;
+                    }, 1000);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
