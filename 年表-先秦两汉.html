@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史年表 - 先秦两汉 | 梦梦的知识图谱</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'SimHei', sans-serif;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            color: #fff;
+            z-index: 100;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        .back-link:hover { background: rgba(255,255,255,0.2); }
+        .header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ffd700, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header p { color: #a0a0a0; font-size: 1.1em; }
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+        }
+        .stat-item {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 20px;
+            border-radius: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .section { margin-bottom: 50px; }
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-icon { font-size: 1.2em; }
+        .persons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        .person-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+        .person-card:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+        .person-name {
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        .person-era { color: #888; font-size: 0.85em; margin-left: 8px; }
+        .person-desc {
+            color: #ccc;
+            font-size: 0.9em;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        .person-source { color: #666; font-size: 0.8em; margin-top: 8px; }
+        .person-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+        .tag {
+            background: rgba(100,180,255,0.2);
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 0.8em;
+        }
+        .events-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .event-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .event-name { font-weight: bold; color: #ff6b6b; font-size: 1.1em; margin-bottom: 8px; }
+        .event-desc { color: #ccc; font-size: 0.95em; line-height: 1.5; }
+        .event-source { color: #666; font-size: 0.8em; margin-top: 8px; }
+        .empty { text-align: center; color: #666; padding: 40px; }
+    </style>
+</head>
+<body>
+    <a href="首页.html" class="back-link">← 返回首页</a>
+    <div class="header">
+        <h1>📜 先秦两汉年表</h1>
+        <p>历史人物与事件</p>
+        <div class="stats">
+            <span class="stat-item">👤 28 人物</span>
+            <span class="stat-item">📅 3 事件</span>
+        </div>
+    </div>
+    <div class="container">
+
+        <div class="section">
+            <h2 class="section-title"><span class="section-icon">📅</span>历史事件</h2>
+            <div class="events-list">
+
+                <div class="event-card">
+                    <div class="event-name">履不借以视朝 <span style="color:#888;font-weight:normal;font-size:0.9em">(西汉)</span></div>
+                    <div class="event-desc">典故：汉代草鞋别名'不借'，汉文帝穿着草鞋上朝处理政务，成为节俭的表率</div>
+                    <div class="event-source">📚 古代公务员生存指南</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">马融定力实验 <span style="color:#888;font-weight:normal;font-size:0.9em">(东汉)</span></div>
+                    <div class="event-desc">马融在授课时安排侍女伴舞，观察哪位弟子能保持定力不受诱惑</div>
+                    <div class="event-source">📚 古代公务员生存指南</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">卢植抗言董卓 <span style="color:#888;font-weight:normal;font-size:0.9em">(东汉末)</span></div>
+                    <div class="event-desc">董卓欲废帝立新君，卢植公开反对。董卓虽然恼怒，但因忌惮卢植的名望而不敢杀他</div>
+                    <div class="event-source">📚 古代公务员生存指南</div>
+                </div>
+</div></div>
+        <div class="section">
+            <h2 class="section-title"><span class="section-icon">👤</span>历史人物</h2>
+            <div class="persons-grid">
+
+                <div class="person-card">
+                    <div class="person-name">汉文帝刘恒<span class="person-era">西汉</span></div>
+                    <div class="person-desc">西汉皇帝，以节俭著称，穿草鞋上朝（履不借以视朝）</div>
+                    <div class="person-source">📚 古代公务员生存指南</div>
+                    <div class="person-tags"><span class="tag">皇帝</span><span class="tag">节俭</span><span class="tag">西汉</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">卢植<span class="person-era">东汉末</span></div>
+                    <div class="person-desc">东汉末年名儒，马融弟子，刘备老师。曹操评价：名著海内，学为儒宗，士之楷模，国之桢干</div>
+                    <div class="person-source">📚 古代公务员生存指南</div>
+                    <div class="person-tags"><span class="tag">名儒</span><span class="tag">东汉</span><span class="tag">师道</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">马融<span class="person-era">东汉</span></div>
+                    <div class="person-desc">东汉经学大师，门下弟子千人。授课时让侍女伴舞以测试弟子定力</div>
+                    <div class="person-source">📚 古代公务员生存指南</div>
+                    <div class="person-tags"><span class="tag">经学</span><span class="tag">东汉</span><span class="tag">教育</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">刘备<span class="person-era">东汉末</span></div>
+                    <div class="person-desc">东汉末年枭雄，蜀汉开国皇帝。早年曾师从卢植学习，以卖草鞋为生</div>
+                    <div class="person-source">📚 古代公务员生存指南</div>
+                    <div class="person-tags"><span class="tag">蜀汉</span><span class="tag">皇帝</span><span class="tag">东汉末</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">董卓<span class="person-era">东汉末</span></div>
+                    <div class="person-desc">东汉末年权臣，专权废立。卢植公开反对其废帝之举，但他忌惮卢植名声不敢杀之</div>
+                    <div class="person-source">📚 古代公务员生存指南</div>
+                    <div class="person-tags"><span class="tag">权臣</span><span class="tag">东汉末</span><span class="tag">专权</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">曹操<span class="person-era">东汉末</span></div>
+                    <div class="person-desc">东汉末年枭雄，魏武帝。曾评价卢植：名著海内，学为儒宗，士之楷模，国之桢干</div>
+                    <div class="person-source">📚 古代公务员生存指南</div>
+                    <div class="person-tags"><span class="tag">魏武</span><span class="tag">东汉末</span><span class="tag">政治家</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">墨子<span class="person-era">战国</span></div>
+                    <div class="person-desc">战国时期思想家，墨家学派创始人</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">思想家</span><span class="tag">墨家</span><span class="tag">战国</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">许慎<span class="person-era">东汉</span></div>
+                    <div class="person-desc">东汉经学大师，著《说文解字》，是文字学的奠基人</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">经学</span><span class="tag">文字学</span><span class="tag">东汉</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">伏羲<span class="person-era">上古</span></div>
+                    <div class="person-desc">传说中的人文始祖，相传八卦为其所画</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">神话</span><span class="tag">人文始祖</span><span class="tag">八卦</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">仓颉<span class="person-era">上古</span></div>
+                    <div class="person-desc">传说中造字的圣人</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">神话</span><span class="tag">造字</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">周公<span class="person-era">西周</span></div>
+                    <div class="person-desc">周文王之子，制礼作乐，被儒家尊为元圣</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">周初</span><span class="tag">礼乐</span><span class="tag">儒家</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">屈原<span class="person-era">战国</span></div>
+                    <div class="person-desc">楚国诗人，《楚辞》的奠基人</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">诗人</span><span class="tag">楚辞</span><span class="tag">战国</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">宋玉<span class="person-era">战国</span></div>
+                    <div class="person-desc">楚国辞赋家，屈原弟子</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">辞赋</span><span class="tag">屈原弟子</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">伏生<span class="person-era">西汉</span></div>
+                    <div class="person-desc">秦末汉初儒生，壁藏《尚书》</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">儒生</span><span class="tag">尚书</span><span class="tag">传承</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">苏秦<span class="person-era">战国</span></div>
+                    <div class="person-desc">战国纵横家，合纵派的代表人物</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">纵横家</span><span class="tag">合纵</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">张仪<span class="person-era">战国</span></div>
+                    <div class="person-desc">战国纵横家，连横派的代表人物</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">纵横家</span><span class="tag">连横</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">吕不韦<span class="person-era">战国</span></div>
+                    <div class="person-desc">秦相国，主持编撰《吕氏春秋》</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">秦相</span><span class="tag">杂家</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">李斯<span class="person-era">秦</span></div>
+                    <div class="person-desc">秦朝丞相，推行郡县制、统一文字</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">秦相</span><span class="tag">法家</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">秦始皇<span class="person-era">秦</span></div>
+                    <div class="person-desc">秦朝开国皇帝，统一六国</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">皇帝</span><span class="tag">秦</span><span class="tag">统一</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">司马迁<span class="person-era">西汉</span></div>
+                    <div class="person-desc">史学家，著《史记》，创立纪传体</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">史学家</span><span class="tag">史记</span><span class="tag">纪传体</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">班固<span class="person-era">东汉</span></div>
+                    <div class="person-desc">史学家，著《汉书》</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">史学家</span><span class="tag">汉书</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">孔子<span class="person-era">春秋</span></div>
+                    <div class="person-desc">儒家学派创始人</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">思想家</span><span class="tag">儒家</span><span class="tag">春秋</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">孟子<span class="person-era">战国</span></div>
+                    <div class="person-desc">儒家亚圣，继承并发展孔子学说</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">思想家</span><span class="tag">儒家</span><span class="tag">战国</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">荀子<span class="person-era">战国</span></div>
+                    <div class="person-desc">儒家思想家，提出性恶论</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">思想家</span><span class="tag">儒家</span><span class="tag">战国</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">老子<span class="person-era">春秋</span></div>
+                    <div class="person-desc">道家学派创始人</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">思想家</span><span class="tag">道家</span><span class="tag">春秋</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">庄子<span class="person-era">战国</span></div>
+                    <div class="person-desc">道家代表人物</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">思想家</span><span class="tag">道家</span><span class="tag">战国</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">韩非子<span class="person-era">战国</span></div>
+                    <div class="person-desc">法家集大成者</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">思想家</span><span class="tag">法家</span><span class="tag">战国</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">汉武帝<span class="person-era">西汉</span></div>
+                    <div class="person-desc">西汉皇帝，开疆拓土</div>
+                    <div class="person-source">📚 好看的中国历史故事</div>
+                    <div class="person-tags"><span class="tag">皇帝</span><span class="tag">西汉</span><span class="tag">汉武</span></div>
+                </div>
+</div></div>
+    </div>
+</body>
+</html>
