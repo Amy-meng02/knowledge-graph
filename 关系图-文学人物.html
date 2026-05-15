@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人物关系图 - 文学人物 | 梦梦的知识图谱</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0f0f23 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #container { width: 100vw; height: 100vh; position: relative; }
+        #graph { width: 100%; height: 100%; }
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.15);
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            color: #fff;
+            z-index: 100;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .back-link:hover { background: rgba(255,255,255,0.25); }
+        #search-box {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+        #search-input {
+            width: 280px;
+            padding: 12px 20px;
+            border: 2px solid rgba(100,180,255,0.3);
+            border-radius: 25px;
+            background: rgba(20,30,50,0.9);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+        #search-input:focus { border-color: rgba(100,180,255,0.8); }
+        #search-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: #fff;
+            cursor: pointer;
+        }
+        #stats-box {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(20,30,50,0.95);
+            border: 1px solid rgba(100,180,255,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            min-width: 160px;
+        }
+        #stats-box h3 { color: #fff; margin-bottom: 10px; font-size: 14px; }
+        .stat-row { display: flex; justify-content: space-between; color: #aaa; font-size: 12px; margin: 4px 0; }
+        .stat-value { color: #4a90e2; font-weight: bold; }
+        .node { cursor: pointer; }
+        .node:hover { filter: brightness(1.3); }
+        .node-circle { stroke: #fff; stroke-width: 2px; }
+        .node-label { fill: #fff; font-size: 11px; text-anchor: middle; pointer-events: none; }
+        .link { stroke-opacity: 0.6; }
+        .link-label { fill: #aaa; font-size: 10px; text-anchor: middle; pointer-events: none; }
+        #tooltip {
+            position: absolute;
+            background: rgba(20,30,50,0.98);
+            border: 1px solid rgba(100,180,255,0.5);
+            border-radius: 10px;
+            padding: 15px;
+            max-width: 300px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 200;
+        }
+        #tooltip h4 { color: #ffd700; margin-bottom: 8px; font-size: 16px; }
+        #tooltip p { color: #ccc; font-size: 13px; line-height: 1.4; margin: 5px 0; }
+        #tooltip .era { color: #888; font-size: 12px; margin-top: 8px; }
+        .empty-state { text-align: center; padding: 100px; color: #666; }
+    </style>
+</head>
+<body>
+    <a href="首页.html" class="back-link">← 返回首页</a>
+    <div id="search-box">
+        <input type="text" id="search-input" placeholder="搜索人物名称...">
+        <button id="search-btn">搜索</button>
+    </div>
+    <div id="stats-box">
+        <h3>📊 图谱统计</h3>
+        <div class="stat-row"><span>人物数量</span><span class="stat-value">35</span></div>
+        <div class="stat-row"><span>关系数量</span><span class="stat-value">0</span></div>
+    </div>
+    <div id="container">
+        <svg id="graph"></svg>
+    </div>
+    <div id="tooltip"></div>
+    
+    <script>
+        const nodes = [{"id": "person_aleixie", "name": "阿列克谢", "era": "19世纪", "desc": "《赌徒》主人公，从有理想的知识分子堕落为赌瘾奴隶。"}, {"id": "person_bolinna", "name": "波琳娜", "era": "19世纪", "desc": "《赌徒》人物，将军继女，阿列克谢暗恋对象。"}, {"id": "person_zhufangleizhe", "name": "将军", "era": "19世纪", "desc": "《赌徒》人物，没落贵族，波琳娜的继父。"}, {"id": "person_degeleye", "name": "德·格里叶", "era": "19世纪", "desc": "《赌徒》人物，法国高利贷者，觊觎波琳娜的嫁妆。"}, {"id": "person_nasigenka", "name": "娜斯坚卡", "era": "19世纪", "desc": "《白夜》女主人公，在河边哭泣的少女，后来与爱人重逢。"}, {"id": "person_bazhaluo", "name": "巴扎罗夫", "era": "19世纪", "desc": "《父与子》核心人物，平民知识分子，虚无主义者。"}, {"id": "person_erqiaxi", "name": "阿尔卡季", "era": "19世纪", "desc": "《父与子》人物，基尔萨诺夫家的大儿子，向往新思想。"}, {"id": "person_nikola", "name": "尼古拉·基尔萨诺夫", "era": "19世纪", "desc": "《父与子》人物，老一代贵族代表，阿尔卡季之父。"}, {"id": "person_pafu", "name": "帕维尔·基尔萨诺夫", "era": "19世纪", "desc": "《父与子》人物，尼古拉之弟，传统贵族的代表。"}, {"id": "person_aojin", "name": "奥金佐娃", "era": "19世纪", "desc": "《父与子》人物，美丽的贵族寡妇，巴扎罗夫爱上的人。"}, {"id": "person_tuge", "name": "屠格涅夫", "era": "19世纪", "desc": "俄国作家，《父与子》作者。"}, {"id": "person_xisikeli", "name": "希斯克利夫", "era": "19世纪", "desc": "《呼啸山庄》主人公，被收养的孤儿，复仇者。"}, {"id": "person_zhongting", "name": "凯瑟琳", "era": "19世纪", "desc": "《呼啸山庄》女主人公，希斯克利夫的青梅竹马。"}, {"id": "person_ailang", "name": "埃德加·林顿", "era": "19世纪", "desc": "《呼啸山庄》人物，画眉田庄主人，凯瑟琳的丈夫。"}, {"id": "person_xinde", "name": "辛德雷", "era": "19世纪", "desc": "《呼啸山庄》人物，凯瑟琳之兄，虐待希斯克利夫。"}, {"id": "person_hamudun", "name": "哈里顿", "era": "19世纪", "desc": "《呼啸山庄》人物，辛德雷之子，最终与凯瑟琳走出仇恨。"}, {"id": "person_xiaokaishen", "name": "小凯瑟琳", "era": "19世纪", "desc": "《呼啸山庄》人物，凯瑟琳与林顿之女，象征希望。"}, {"id": "person_yuesefu", "name": "约瑟夫", "era": "19世纪", "desc": "《呼啸山庄》人物，呼啸山庄的老仆人，虚伪的道德卫道士。"}, {"id": "person_weite", "name": "维特", "era": "18世纪", "desc": "《少年维特之烦恼》主人公，追求个性解放的青年，最终在绝望中自杀。"}, {"id": "person_luti", "name": "绿蒂", "era": "18世纪", "desc": "《少年维特之烦恼》女主人公，维特一见钟情的少女，已订婚。"}, {"id": "person_geerte", "name": "歌德", "era": "18-19世纪", "desc": "约翰·沃尔夫冈·冯·歌德，德国文豪，《少年维特之烦恼》《浮士德》作者。"}, {"id": "person_hanmute", "name": "哈姆雷特", "era": "16-17世纪", "desc": "《哈姆雷特》主人公，丹麦王子，'生存还是毁灭'的经典独白者。"}, {"id": "person_kelaoday乌斯", "name": "克劳狄斯", "era": "16-17世纪", "desc": "《哈姆雷特》人物，丹麦国王，哈姆雷特的叔父，弑兄篡位者。"}, {"id": "person_aofei", "name": "奥菲莉亚", "era": "16-17世纪", "desc": "《哈姆雷特》人物，哈姆雷特的爱人，悲剧性人物。"}, {"id": "person_aosaiduo", "name": "奥赛罗", "era": "16-17世纪", "desc": "《奥赛罗》主人公，摩尔人将军，因嫉妒杀死妻子。"}, {"id": "person_taisi", "name": "苔丝狄蒙娜", "era": "16-17世纪", "desc": "《奥赛罗》女主人公，奥赛罗的妻子，被伊阿古陷害。"}, {"id": "person_yiyagu", "name": "伊阿古", "era": "16-17世纪", "desc": "《奥赛罗》人物，奥赛罗的旗官，阴谋家。"}, {"id": "person_liere", "name": "李尔王", "era": "16-17世纪", "desc": "《李尔王》主人公，分封国土后被女儿背叛的国王。"}, {"id": "person_kaodil", "name": "考狄利娅", "era": "16-17世纪", "desc": "《李尔王》人物，李尔王的小女儿，真诚的象征。"}, {"id": "person_maikebai", "name": "麦克白", "era": "16-17世纪", "desc": "《麦克白》主人公，苏格兰将军，在野心驱使下弑君。"}, {"id": "person_maikebaifuren", "name": "麦克白夫人", "era": "16-17世纪", "desc": "《麦克白》人物，麦克白之妻，推动丈夫弑君。"}, {"id": "person_pushe", "name": "鲍西亚", "era": "16-17世纪", "desc": "《威尼斯商人》女主人公，聪明机智，智胜夏洛克。"}, {"id": "person_xialiakun", "name": "夏洛克", "era": "16-17世纪", "desc": "《威尼斯商人》人物，犹太商人，高利贷者。"}, {"id": "person_luoselin", "name": "罗瑟琳", "era": "16-17世纪", "desc": "《皆大欢喜》女主人公，女扮男装，在森林中成全爱情。"}, {"id": "person_weiao", "name": "薇奥拉", "era": "16-17世纪", "desc": "《第十二夜》女主人公，女扮男装侍奉公爵。"}];
+        const links = [];
+        
+        const relationColors = {"师徒": "#4CAF50", "夫妻": "#E91E63", "父子": "#FF9800", "兄弟": "#9C27B0", "对抗": "#F44336", "评价": "#00BCD4", "朋友": "#8BC34A", "同事": "#607D8B", "师生": "#4CAF50", "暗恋": "#E91E63", "暗恋对象": "#E91E63", "恋人": "#E91E63", "爱人": "#E91E63", "女友": "#E91E63", "青梅竹马": "#E91E63", "作者": "#9C27B0", "主人公": "#2196F3", "参与": "#FF5722", "关联": "#795548", "影响": "#00BCD4", "所属朝代": "#607D8B", "典故关联": "#FFC107", "关联事件": "#FFC107", "对立": "#F44336", "引用": "#9E9E9E", "默认": "#888888"};
+        
+        if (nodes.length === 0) {
+            document.getElementById('graph').outerHTML = '<div class="empty-state"><h2>暂无人物数据</h2><p>该时代暂无可视化的人物关系</p></div>';
+        } else {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
+            const svg = d3.select('#graph')
+                .attr('width', width)
+                .attr('height', height);
+            
+            // 添加缩放
+            const g = svg.append('g');
+            svg.call(d3.zoom().scaleExtent([0.3, 3]).on('zoom', (event) => {
+                g.attr('transform', event.transform);
+            }));
+            
+            // 力导向模拟
+            const simulation = d3.forceSimulation(nodes)
+                .force('link', d3.forceLink(links).id(d => d.id).distance(120))
+                .force('charge', d3.forceManyBody().strength(-300))
+                .force('center', d3.forceCenter(width/2, height/2))
+                .force('collision', d3.forceCollide().radius(40));
+            
+            // 连线
+            const link = g.append('g')
+                .selectAll('line')
+                .data(links)
+                .join('line')
+                .attr('class', 'link')
+                .attr('stroke', d => relationColors[d.relation] || relationColors['默认'])
+                .attr('stroke-width', 2);
+            
+            // 连线标签
+            const linkLabel = g.append('g')
+                .selectAll('text')
+                .data(links)
+                .join('text')
+                .attr('class', 'link-label')
+                .text(d => d.relation)
+                .attr('font-size', '10px')
+                .attr('fill', '#888');
+            
+            // 节点组
+            const node = g.append('g')
+                .selectAll('g')
+                .data(nodes)
+                .join('g')
+                .attr('class', 'node')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+            
+            // 节点圆
+            node.append('circle')
+                .attr('class', 'node-circle')
+                .attr('r', 20)
+                .attr('fill', d => {
+                    if (d.era.includes('汉') || d.era.includes('秦') || d.era.includes('周') || d.era.includes('战国') || d.era.includes('上古') || d.era.includes('春秋')) return '#e74c3c';
+                    if (d.era.includes('魏') || d.era.includes('晋') || d.era.includes('南北朝')) return '#9b59b6';
+                    if (d.era.includes('唐') || d.era.includes('宋') || d.era.includes('元')) return '#f39c12';
+                    if (d.era.includes('明') || d.era.includes('清') || d.era.includes('近代')) return '#27ae60';
+                    if (d.era.includes('现代') || d.era.includes('当代')) return '#3498db';
+                    return '#95a5a6';
+                });
+            
+            // 节点标签
+            node.append('text')
+                .attr('class', 'node-label')
+                .attr('dy', 35)
+                .text(d => d.name);
+            
+            // 节点交互
+            node.on('mouseover', function(event, d) {
+                const tooltip = document.getElementById('tooltip');
+                tooltip.style.opacity = 1;
+                tooltip.style.left = (event.pageX + 15) + 'px';
+                tooltip.style.top = (event.pageY - 10) + 'px';
+                tooltip.innerHTML = `<h4>${d.name}</h4><p>${d.desc}</p><div class="era">📅 ${d.era}</div>`;
+                
+                // 高亮相关连线
+                link.attr('stroke-opacity', l => 
+                    l.source.id === d.id || l.target.id === d.id ? 1 : 0.15);
+                linkLabel.attr('fill-opacity', l =>
+                    l.source.id === d.id || l.target.id === d.id ? 1 : 0.15);
+            })
+            .on('mouseout', function() {
+                document.getElementById('tooltip').style.opacity = 0;
+                link.attr('stroke-opacity', 0.6);
+                linkLabel.attr('fill-opacity', 1);
+            });
+            
+            // 更新位置
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+                
+                linkLabel
+                    .attr('x', d => (d.source.x + d.target.x) / 2)
+                    .attr('y', d => (d.source.y + d.target.y) / 2);
+                
+                node.attr('transform', d => `translate(${d.x},${d.y})`);
+            });
+            
+            // 拖拽函数
+            function dragstarted(event) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                event.subject.fx = event.subject.x;
+                event.subject.fy = event.subject.y;
+            }
+            function dragged(event) {
+                event.subject.fx = event.x;
+                event.subject.fy = event.y;
+            }
+            function dragended(event) {
+                if (!event.active) simulation.alphaTarget(0);
+                event.subject.fx = null;
+                event.subject.fy = null;
+            }
+            
+            // 搜索功能
+            document.getElementById('search-btn').addEventListener('click', searchNode);
+            document.getElementById('search-input').addEventListener('keypress', e => {
+                if (e.key === 'Enter') searchNode();
+            });
+            
+            function searchNode() {
+                const name = document.getElementById('search-input').value.trim();
+                if (!name) return;
+                
+                const found = nodes.find(n => n.name.includes(name));
+                if (found) {
+                    const nodeData = nodes.find(n => n.id === found.id);
+                    nodeData.fx = width / 2;
+                    nodeData.fy = height / 2;
+                    simulation.alpha(1).restart();
+                    setTimeout(() => {
+                        nodeData.fx = null;
+                        nodeData.fy = null;
+                    }, 1000);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
