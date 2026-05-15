@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史年表 - 明清近代 | 梦梦的知识图谱</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'SimHei', sans-serif;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            color: #fff;
+            z-index: 100;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        .back-link:hover { background: rgba(255,255,255,0.2); }
+        .header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ffd700, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header p { color: #a0a0a0; font-size: 1.1em; }
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+        }
+        .stat-item {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 20px;
+            border-radius: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .section { margin-bottom: 50px; }
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-icon { font-size: 1.2em; }
+        .persons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        .person-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+        .person-card:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+        .person-name {
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        .person-era { color: #888; font-size: 0.85em; margin-left: 8px; }
+        .person-desc {
+            color: #ccc;
+            font-size: 0.9em;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        .person-source { color: #666; font-size: 0.8em; margin-top: 8px; }
+        .person-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+        .tag {
+            background: rgba(100,180,255,0.2);
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 0.8em;
+        }
+        .events-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .event-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .event-name { font-weight: bold; color: #ff6b6b; font-size: 1.1em; margin-bottom: 8px; }
+        .event-desc { color: #ccc; font-size: 0.95em; line-height: 1.5; }
+        .event-source { color: #666; font-size: 0.8em; margin-top: 8px; }
+        .empty { text-align: center; color: #666; padding: 40px; }
+    </style>
+</head>
+<body>
+    <a href="首页.html" class="back-link">← 返回首页</a>
+    <div class="header">
+        <h1>📜 明清近代年表</h1>
+        <p>历史人物与事件</p>
+        <div class="stats">
+            <span class="stat-item">👤 78 人物</span>
+            <span class="stat-item">📅 22 事件</span>
+        </div>
+    </div>
+    <div class="container">
+
+        <div class="section">
+            <h2 class="section-title"><span class="section-icon">📅</span>历史事件</h2>
+            <div class="events-list">
+
+                <div class="event-card">
+                    <div class="event-name">二十一条 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">1915年袁世凯政府承认的日本对华二十一一条款</div>
+                    <div class="event-source">📚 郭汝瑰回忆录</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">四一二政变 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">1927年4月12日蒋介石在上海发动的反共政变</div>
+                    <div class="event-source">📚 郭汝瑰回忆录</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">宁汉分裂 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">1927年南京国民政府与武汉国民政府的对峙分裂</div>
+                    <div class="event-source">📚 郭汝瑰回忆录</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">长沙大火 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">1938年11月蒋介石下令焚毁长沙</div>
+                    <div class="event-source">📚 郭汝瑰回忆录</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">黄河口决堤 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">抗战时期蒋介石下令决堤黄河以阻日军</div>
+                    <div class="event-source">📚 郭汝瑰回忆录</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">暂五师整顿 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">郭汝瑰整顿暂五师军纪，枪决违纪士兵</div>
+                    <div class="event-source">📚 郭汝瑰回忆录</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">九一八事变 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">1931年日本关东军发动九一八事变侵占东北</div>
+                    <div class="event-source">📚 郭汝瑰回忆录</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">黄埔军校成立 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">1924年孙中山在广州黄埔创办陆军军官学校</div>
+                    <div class="event-source">📚 郭汝瑰回忆录</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">北伐战争 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">1926-1928年国共合作进行的反帝反封建战争</div>
+                    <div class="event-source">📚 郭汝瑰回忆录</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">血花剧社 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">黄埔军校学生组织的话剧社</div>
+                    <div class="event-source">📚 郭汝瑰回忆录</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">整理党务案 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">1926年蒋介石颁布的限制共产党活动的议案</div>
+                    <div class="event-source">📚 郭汝瑰回忆录</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">成城学校事件 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">日本收买中国留学生的事件</div>
+                    <div class="event-source">📚 郭汝瑰回忆录</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">青年意大利党运动 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">19世纪意大利民族解放运动</div>
+                    <div class="event-source">📚 牛虻</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">亚瑟信仰崩塌 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">亚瑟因被神父欺骗和发现身世秘密而信仰崩塌，远走南美</div>
+                    <div class="event-source">📚 牛虻</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">牛虻就义 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">牛虻被蒙泰尼里下令处死，震动意大利</div>
+                    <div class="event-source">📚 牛虻</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">洛克菲勒基金会接管协和 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">1915年7月，美国洛克菲勒基金会用20万美元买下北京协和医学堂，又花12.5万美元买下豫王府</div>
+                    <div class="event-source">📚 协和医事</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">太平洋战争致协和停办 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">1941年12月8日太平洋战争爆发，协和医学院于1月18日完全停办，被日军改作军医及血清研究所</div>
+                    <div class="event-source">📚 协和医事</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">北京人头骨化石失踪 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">1941年太平洋战争爆发后，存放在协和的北京人头骨化石在转移过程中神秘失踪，至今下落不明</div>
+                    <div class="event-source">📚 血泪斑斑旧协和</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">文字狱盛行 <span style="color:#888;font-weight:normal;font-size:0.9em">(清代)</span></div>
+                    <div class="event-desc">清代思想禁锢严重，文人士大夫常因言论获罪</div>
+                    <div class="event-source">📚 阅微草堂笔记</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">朱枫就义 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">1950年6月10日，朱枫在台北马场町刑场从容就义，年仅45岁。</div>
+                    <div class="event-source">📚 朱枫传</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">朱枫赴台任务 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">1949年11月，朱枫受华东局派遣赴台，获取重要军事情报。</div>
+                    <div class="event-source">📚 朱枫传</div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-name">沈安娜潜伏14年 <span style="color:#888;font-weight:normal;font-size:0.9em">(近代)</span></div>
+                    <div class="event-desc">1938-1949年，沈安娜潜伏国民党核心机关14年，被誉为'按住蒋介石脉搏的速记员'。</div>
+                    <div class="event-source">📚 丹心素裹</div>
+                </div>
+</div></div>
+        <div class="section">
+            <h2 class="section-title"><span class="section-icon">👤</span>历史人物</h2>
+            <div class="persons-grid">
+
+                <div class="person-card">
+                    <div class="person-name">陈寅恪<span class="person-era">近代</span></div>
+                    <div class="person-desc">近代著名历史学家、国学大师。'恪'字应读ke，不读que</div>
+                    <div class="person-source">📚 咬文嚼字二百问</div>
+                    <div class="person-tags"><span class="tag">学者</span><span class="tag">近代</span><span class="tag">历史</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">康素珍<span class="person-era">近代</span></div>
+                    <div class="person-desc">《我的妓女生涯》主人公，旧社会底层女性，以自传形式记录二十年悲惨遭遇</div>
+                    <div class="person-source">📚 我的妓女生涯</div>
+                    <div class="person-tags"><span class="tag">主人公</span><span class="tag">旧社会</span><span class="tag">女性</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">袁世凯<span class="person-era">近代</span></div>
+                    <div class="person-desc">北洋军阀总统，签订二十一条</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">军阀</span><span class="tag">总统</span><span class="tag">二十一条</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">蒋介石<span class="person-era">近代</span></div>
+                    <div class="person-desc">中华民国总统，国民党总裁</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">总统</span><span class="tag">国民党</span><span class="tag">民国</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">陈诚<span class="person-era">近代</span></div>
+                    <div class="person-desc">国民党将领，曾任参谋总长</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">将领</span><span class="tag">国民党</span><span class="tag">民国</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">杨杰<span class="person-era">近代</span></div>
+                    <div class="person-desc">国民党将领，陆军大学教育长</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">将领</span><span class="tag">军事理论</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">郭汝瑰<span class="person-era">近代</span></div>
+                    <div class="person-desc">国民党中将，后投奔共产党，抗日战争中战功卓著</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">将军</span><span class="tag">国共</span><span class="tag">抗日</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">郭汝栋<span class="person-era">近代</span></div>
+                    <div class="person-desc">郭汝瑰的兄长，川军将领，曾任军长</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">将领</span><span class="tag">川军</span><span class="tag">郭汝瑰之兄</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">张铮<span class="person-era">近代</span></div>
+                    <div class="person-desc">联合中学校长，毕业于日本东京帝国大学，教育救国论者</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">教育家</span><span class="tag">校长</span><span class="tag">四川</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">杨森<span class="person-era">近代</span></div>
+                    <div class="person-desc">四川军阀，曾任四川省主席，在军阀混战中崛起</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">军阀</span><span class="tag">四川</span><span class="tag">民国</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">陈廷栋<span class="person-era">近代</span></div>
+                    <div class="person-desc">郭汝瑰的同学好友，曾建议郭去广东参加革命</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">同学</span><span class="tag">革命</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">熊克武<span class="person-era">近代</span></div>
+                    <div class="person-desc">四川靖国军总司令，辛亥革命元勋</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">将军</span><span class="tag">辛亥革命</span><span class="tag">四川</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">田中义一<span class="person-era">近代</span></div>
+                    <div class="person-desc">日本首相，制定侵华的'田中奏折'</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">日本</span><span class="tag">首相</span><span class="tag">侵华</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">方学兰<span class="person-era">近代</span></div>
+                    <div class="person-desc">郭汝瑰的妻子</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">郭汝瑰妻子</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">胡琏<span class="person-era">近代</span></div>
+                    <div class="person-desc">国民党将领，在抗日战争中与郭汝瑰共事</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">将领</span><span class="tag">抗日</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">韩炼成<span class="person-era">近代</span></div>
+                    <div class="person-desc">郭汝瑰的同事和好友，实际上是共产党员</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">将领</span><span class="tag">秘密党员</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">吕文贞<span class="person-era">近代</span></div>
+                    <div class="person-desc">郭汝瑰的同事，陆大研究员</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">将领</span><span class="tag">陆大</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">张叙曾<span class="person-era">近代</span></div>
+                    <div class="person-desc">陆大研究员，后被发现是军统特务</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">军统特务</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">戴季韬<span class="person-era">近代</span></div>
+                    <div class="person-desc">国民党将领，在暂五师吃缺谎报军饷</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">将领</span><span class="tag">腐败</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">刘湘<span class="person-era">近代</span></div>
+                    <div class="person-desc">四川军阀，国民党一级上将，曾任四川省主席</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">军阀</span><span class="tag">四川</span><span class="tag">上将</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">谭延闿<span class="person-era">近代</span></div>
+                    <div class="person-desc">湘军司令，与宋美龄有渊源，拒绝孙中山为其做媒续弦</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">军阀</span><span class="tag">湖南</span><span class="tag">政客</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">宋美龄<span class="person-era">近代</span></div>
+                    <div class="person-desc">蒋介石夫人，中华民国第一夫人</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">民国</span><span class="tag">第一夫人</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">薛岳<span class="person-era">近代</span></div>
+                    <div class="person-desc">国民党将领，第九战区司令长官</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">将领</span><span class="tag">抗日</span><span class="tag">第九战区</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">王耀武<span class="person-era">近代</span></div>
+                    <div class="person-desc">国民党将领，为人圆滑善于交际</div>
+                    <div class="person-source">📚 郭汝瑰回忆录</div>
+                    <div class="person-tags"><span class="tag">将领</span><span class="tag">国民党</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">方苞<span class="person-era">清</span></div>
+                    <div class="person-desc">清代散文家，桐城派的开创者</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">散文</span><span class="tag">桐城派</span><span class="tag">清</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">姚鼐<span class="person-era">清</span></div>
+                    <div class="person-desc">清代散文家，桐城派集大成者</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">散文</span><span class="tag">桐城派</span><span class="tag">清</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">梁启超<span class="person-era">近代</span></div>
+                    <div class="person-desc">近代思想家，'新文体'的倡导者</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">思想家</span><span class="tag">近代</span><span class="tag">新文化</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">胡适<span class="person-era">近代</span></div>
+                    <div class="person-desc">近代学者，白话文运动的主要倡导者</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">学者</span><span class="tag">白话文</span><span class="tag">新文化</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">曾国藩<span class="person-era">清</span></div>
+                    <div class="person-desc">政治家、军事家，中兴桐城派</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">政治家</span><span class="tag">清</span><span class="tag">桐城派</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">亚瑟/牛虻<span class="person-era">近代</span></div>
+                    <div class="person-desc">《牛虻》主人公，本名亚瑟·勃尔顿，后成为革命者'牛虻'</div>
+                    <div class="person-source">📚 牛虻</div>
+                    <div class="person-tags"><span class="tag">主人公</span><span class="tag">革命者</span><span class="tag">意大利</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">蒙泰尼里<span class="person-era">近代</span></div>
+                    <div class="person-desc">《牛虻》人物，天主教神父，后成为红衣主教，实为亚瑟的生父</div>
+                    <div class="person-source">📚 牛虻</div>
+                    <div class="person-tags"><span class="tag">神父</span><span class="tag">生父</span><span class="tag">意大利</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">琼玛<span class="person-era">近代</span></div>
+                    <div class="person-desc">《牛虻》人物，勇敢坚定的革命女性，亚瑟的挚爱</div>
+                    <div class="person-source">📚 牛虻</div>
+                    <div class="person-tags"><span class="tag">革命者</span><span class="tag">女友</span><span class="tag">意大利</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">波拉<span class="person-era">近代</span></div>
+                    <div class="person-desc">《牛虻》人物，青年意大利党成员，曾被亚瑟无意间出卖</div>
+                    <div class="person-source">📚 牛虻</div>
+                    <div class="person-tags"><span class="tag">革命者</span><span class="tag">同志</span><span class="tag">意大利</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">卡尔狄神父<span class="person-era">近代</span></div>
+                    <div class="person-desc">《牛虻》人物，天主教神父，欺骗亚瑟导致其出卖同志</div>
+                    <div class="person-source">📚 牛虻</div>
+                    <div class="person-tags"><span class="tag">神父</span><span class="tag">反派</span><span class="tag">意大利</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">伏尼契<span class="person-era">近代</span></div>
+                    <div class="person-desc">艾捷尔·丽莲·伏尼契，爱尔兰女作家，《牛虻》作者</div>
+                    <div class="person-source">📚 牛虻</div>
+                    <div class="person-tags"><span class="tag">作者</span><span class="tag">爱尔兰</span><span class="tag">作家</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">韩丁<span class="person-era">近代</span></div>
+                    <div class="person-desc">伏尼契的孙子，受《西行漫记》影响来到延安，写成《翻身》</div>
+                    <div class="person-source">📚 牛虻</div>
+                    <div class="person-tags"><span class="tag">伏尼契后人</span><span class="tag">作家</span><span class="tag">中国</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">寒春<span class="person-era">近代</span></div>
+                    <div class="person-desc">伏尼契的孙女，美国科学家，参与原子弹研制，后在中国从事农业科技</div>
+                    <div class="person-source">📚 牛虻</div>
+                    <div class="person-tags"><span class="tag">伏尼契后人</span><span class="tag">科学家</span><span class="tag">中国</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">陆定一<span class="person-era">近代</span></div>
+                    <div class="person-desc">伟大的共产主义战士，杰出的无产阶级革命家，曾负责党的宣传文教工作</div>
+                    <div class="person-source">📚 血泪斑斑旧协和</div>
+                    <div class="person-tags"><span class="tag">革命家</span><span class="tag">宣传</span><span class="tag">共产党</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">刘瑞恒<span class="person-era">近代</span></div>
+                    <div class="person-desc">曾任协和医院院长，后任国民党卫生部长，美帝国主义培养的医生</div>
+                    <div class="person-source">📚 血泪斑斑旧协和</div>
+                    <div class="person-tags"><span class="tag">医生</span><span class="tag">协和</span><span class="tag">卫生部长</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">窦维廉<span class="person-era">近代</span></div>
+                    <div class="person-desc">美帝国主义分子，协和医学院教授，进行人体实验</div>
+                    <div class="person-source">📚 血泪斑斑旧协和</div>
+                    <div class="person-tags"><span class="tag">美帝</span><span class="tag">教授</span><span class="tag">实验</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">史蒂文森<span class="person-era">近代</span></div>
+                    <div class="person-desc">美帝国主义分子，协和解剖学系副教授，曾处理孙中山遗体防腐</div>
+                    <div class="person-source">📚 血泪斑斑旧协和</div>
+                    <div class="person-tags"><span class="tag">美帝</span><span class="tag">解剖</span><span class="tag">孙中山</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">刘士豪<span class="person-era">近代</span></div>
+                    <div class="person-desc">中国著名内分泌学家，在钙磷代谢与骨代谢疾病研究方面取得卓越成就</div>
+                    <div class="person-source">📚 血泪斑斑旧协和</div>
+                    <div class="person-tags"><span class="tag">内分泌</span><span class="tag">科学家</span><span class="tag">协和</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">孙中山（逝世）<span class="person-era">近代</span></div>
+                    <div class="person-desc">中国民主革命先驱，1925年逝世，遗体由协和进行防腐处理，肝脏被偷制成标本</div>
+                    <div class="person-source">📚 血泪斑斑旧协和</div>
+                    <div class="person-tags"><span class="tag">革命先驱</span><span class="tag">逝世</span><span class="tag">协和</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">步达生<span class="person-era">近代</span></div>
+                    <div class="person-desc">加拿大古人类学家，1926年来到协和解剖系，与中国合作者一起发现了'北京人'化石</div>
+                    <div class="person-source">📚 协和医事</div>
+                    <div class="person-tags"><span class="tag">科学家</span><span class="tag">古人类学</span><span class="tag">北京人</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">闻一传<span class="person-era">近代</span></div>
+                    <div class="person-desc">闻一多的弟弟，1926-1927年在协和解剖系任教，毕业于芝加哥大学，胚胎学家</div>
+                    <div class="person-source">📚 协和医事</div>
+                    <div class="person-tags"><span class="tag">科学家</span><span class="tag">胚胎学</span><span class="tag">闻一多之弟</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">吴宪<span class="person-era">近代</span></div>
+                    <div class="person-desc">20世纪上半叶中国最伟大的科学家之一，发明了Folin-Wu血液分析法测定血糖</div>
+                    <div class="person-source">📚 协和医事</div>
+                    <div class="person-tags"><span class="tag">科学家</span><span class="tag">生物化学</span><span class="tag">诺贝尔级</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">陈克恢<span class="person-era">近代</span></div>
+                    <div class="person-desc">协和医学院药理系助教，从麻黄中分离出左旋麻黄碱，完成世界著名的麻黄素研究</div>
+                    <div class="person-source">📚 协和医事</div>
+                    <div class="person-tags"><span class="tag">科学家</span><span class="tag">药理学</span><span class="tag">麻黄素</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">兰安生<span class="person-era">近代</span></div>
+                    <div class="person-desc">美国医学家、公共卫生专家，1921年来华，在协和讲授公共卫生学，提出'60%有效的本土运动'名言</div>
+                    <div class="person-source">📚 协和医事</div>
+                    <div class="person-tags"><span class="tag">公共卫生</span><span class="tag">美帝</span><span class="tag">名言</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">林可胜<span class="person-era">近代</span></div>
+                    <div class="person-desc">1921年任全国医学协会会长，呼吁关注农村医疗需要</div>
+                    <div class="person-source">📚 协和医事</div>
+                    <div class="person-tags"><span class="tag">医学协会</span><span class="tag">会长</span><span class="tag">公共卫生</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">胡美<span class="person-era">近代</span></div>
+                    <div class="person-desc">湘雅医学院院长，1921年来协和参加开幕典礼，描述中国医疗危机数字</div>
+                    <div class="person-source">📚 协和医事</div>
+                    <div class="person-tags"><span class="tag">医学教育</span><span class="tag">湘雅</span><span class="tag">院长</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">纪昀/纪晓岚<span class="person-era">清代</span></div>
+                    <div class="person-desc">清代政治家、文学家、学者，字晓岚，《四库全书》总纂官，《阅微草堂笔记》作者</div>
+                    <div class="person-source">📚 阅微草堂笔记</div>
+                    <div class="person-tags"><span class="tag">清代</span><span class="tag">文学家</span><span class="tag">官员</span><span class="tag">四库全书</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">袁殊<span class="person-era">近代</span></div>
+                    <div class="person-desc">中共秘密特工，身兼军统、中统、日伪、青帮多重身份，为革命做出重大贡献</div>
+                    <div class="person-source">📚 我的父亲袁殊</div>
+                    <div class="person-tags"><span class="tag">特工</span><span class="tag">中共</span><span class="tag">近代史</span><span class="tag">秘密工作</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">潘汉年<span class="person-era">近代</span></div>
+                    <div class="person-desc">中共情报工作负责人，袁殊的直接上级</div>
+                    <div class="person-source">📚 我的父亲袁殊</div>
+                    <div class="person-tags"><span class="tag">特工</span><span class="tag">中共</span><span class="tag">情报</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">岩井<span class="person-era">近代</span></div>
+                    <div class="person-desc">日本外务省特工头目，袁殊的日本情报来源渠道</div>
+                    <div class="person-source">📚 我的父亲袁殊</div>
+                    <div class="person-tags"><span class="tag">日本</span><span class="tag">特工</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">王子春<span class="person-era">近代</span></div>
+                    <div class="person-desc">袁殊的上线联系人，负责收取袁殊的党费</div>
+                    <div class="person-source">📚 我的父亲袁殊</div>
+                    <div class="person-tags"><span class="tag">中共</span><span class="tag">联络人</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">王天木<span class="person-era">近代</span></div>
+                    <div class="person-desc">军统特工，后被怀疑而怒而投敌</div>
+                    <div class="person-source">📚 我的父亲袁殊</div>
+                    <div class="person-tags"><span class="tag">军统</span><span class="tag">叛变</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">李士群<span class="person-era">近代</span></div>
+                    <div class="person-desc">汪伪特工总部76号头目</div>
+                    <div class="person-source">📚 我的父亲袁殊</div>
+                    <div class="person-tags"><span class="tag">汉奸</span><span class="tag">76号</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">丁默村<span class="person-era">近代</span></div>
+                    <div class="person-desc">汪伪特工总部76号头目</div>
+                    <div class="person-source">📚 我的父亲袁殊</div>
+                    <div class="person-tags"><span class="tag">汉奸</span><span class="tag">76号</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">杜月笙<span class="person-era">近代</span></div>
+                    <div class="person-desc">上海滩流氓大亨，兼具黑帮领袖与社会名流身份</div>
+                    <div class="person-source">📚 大流氓杜月笙</div>
+                    <div class="person-tags"><span class="tag">流氓</span><span class="tag">上海滩</span><span class="tag">青帮</span><span class="tag">民国</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">戴笠<span class="person-era">近代</span></div>
+                    <div class="person-desc">军统负责人，与杜月笙有合作关系</div>
+                    <div class="person-source">📚 大流氓杜月笙</div>
+                    <div class="person-tags"><span class="tag">军统</span><span class="tag">特工</span><span class="tag">民国</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">吴石<span class="person-era">近代</span></div>
+                    <div class="person-desc">潜伏将军，国民党中将，秘密党员，为解放战争做出重大贡献</div>
+                    <div class="person-source">📚 冷月无声</div>
+                    <div class="person-tags"><span class="tag">将军</span><span class="tag">潜伏者</span><span class="tag">共产党</span><span class="tag">烈士</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">陈碧莲<span class="person-era">近代</span></div>
+                    <div class="person-desc">吴石之妻</div>
+                    <div class="person-source">📚 冷月无声</div>
+                    <div class="person-tags"><span class="tag">女性</span><span class="tag">妻子</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">郑和<span class="person-era">明</span></div>
+                    <div class="person-desc">明代航海家，七下西洋</div>
+                    <div class="person-source">📚 好看的中国历史故事</div>
+                    <div class="person-tags"><span class="tag">航海家</span><span class="tag">明朝</span><span class="tag">外交</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">朱枫<span class="person-era">近代</span></div>
+                    <div class="person-desc">朱枫（1905-1950），原名朱谌之，浙江镇海富商之女，后成为中共隐蔽战线情报员，1950年在台湾就义。</div>
+                    <div class="person-source">📚 朱枫传</div>
+                    <div class="person-tags"><span class="tag">情报员</span><span class="tag">革命烈士</span><span class="tag">隐蔽战线</span><span class="tag">台湾</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">朱晓光<span class="person-era">近代</span></div>
+                    <div class="person-desc">朱枫的革命伴侣，新知书店负责人。</div>
+                    <div class="person-source">📚 朱枫传</div>
+                    <div class="person-tags"><span class="tag">革命者</span><span class="tag">情报员</span><span class="tag">朱枫丈夫</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">陈绶卿<span class="person-era">近代</span></div>
+                    <div class="person-desc">朱枫的第一任丈夫，病逝后朱枫投身革命。</div>
+                    <div class="person-source">📚 朱枫传</div>
+                    <div class="person-tags"><span class="tag">朱枫丈夫</span><span class="tag">已故</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">吴石<span class="person-era">近代</span></div>
+                    <div class="person-desc">国民党国防部参谋次长，秘密为中共提供情报，朱枫的接头人。</div>
+                    <div class="person-source">📚 朱枫传</div>
+                    <div class="person-tags"><span class="tag">将军</span><span class="tag">国民党</span><span class="tag">秘密党员</span><span class="tag">情报</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">蔡孝乾<span class="person-era">近代</span></div>
+                    <div class="person-desc">台湾省工作委员会书记，被捕后叛变，导致朱枫暴露。</div>
+                    <div class="person-source">📚 朱枫传</div>
+                    <div class="person-tags"><span class="tag">叛徒</span><span class="tag">台湾</span><span class="tag">情报系统</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">沈安娜<span class="person-era">近代</span></div>
+                    <div class="person-desc">被誉为'按住蒋介石脉搏的速记员'，潜伏国民党核心机关14年的中共情报员。</div>
+                    <div class="person-source">📚 丹心素裹</div>
+                    <div class="person-tags"><span class="tag">情报员</span><span class="tag">隐蔽战线</span><span class="tag">速记员</span><span class="tag">革命</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">华明之<span class="person-era">近代</span></div>
+                    <div class="person-desc">沈安娜的丈夫，革命伴侣，也是情报员。</div>
+                    <div class="person-source">📚 丹心素裹</div>
+                    <div class="person-tags"><span class="tag">情报员</span><span class="tag">沈安娜丈夫</span><span class="tag">革命伴侣</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">周恩来<span class="person-era">近代</span></div>
+                    <div class="person-desc">中共重要领导人，派遣沈安娜潜伏。</div>
+                    <div class="person-source">📚 丹心素裹</div>
+                    <div class="person-tags"><span class="tag">中共</span><span class="tag">领导人</span><span class="tag">隐蔽战线</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">邓颖超<span class="person-era">近代</span></div>
+                    <div class="person-desc">周恩来夫人，对沈安娜有重要指导。</div>
+                    <div class="person-source">📚 丹心素裹</div>
+                    <div class="person-tags"><span class="tag">中共</span><span class="tag">妇女运动</span><span class="tag">隐蔽战线</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">徐仲航<span class="person-era">近代</span></div>
+                    <div class="person-desc">沈安娜的直接领导人，1942年被捕。</div>
+                    <div class="person-source">📚 丹心素裹</div>
+                    <div class="person-tags"><span class="tag">情报员</span><span class="tag">领导</span><span class="tag">被捕</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">吴克坚<span class="person-era">近代</span></div>
+                    <div class="person-desc">情报工作领导人，派遣并指导沈安娜。</div>
+                    <div class="person-source">📚 丹心素裹</div>
+                    <div class="person-tags"><span class="tag">情报员</span><span class="tag">领导</span><span class="tag">隐蔽战线</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">舒曰信<span class="person-era">近代</span></div>
+                    <div class="person-desc">共产党员，沈安娜的思想启蒙者。</div>
+                    <div class="person-source">📚 丹心素裹</div>
+                    <div class="person-tags"><span class="tag">共产党员</span><span class="tag">思想启蒙</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">陈布雷<span class="person-era">近代</span></div>
+                    <div class="person-desc">蒋介石侍从室主任，沈安娜见证其死亡。</div>
+                    <div class="person-source">📚 丹心素裹</div>
+                    <div class="person-tags"><span class="tag">国民党</span><span class="tag">高官</span><span class="tag">蒋介石幕僚</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">朱家骅<span class="person-era">近代</span></div>
+                    <div class="person-desc">国民党高官，沈安娜打入国民党的引荐人。</div>
+                    <div class="person-source">📚 丹心素裹</div>
+                    <div class="person-tags"><span class="tag">国民党</span><span class="tag">高官</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">张仲实<span class="person-era">近代</span></div>
+                    <div class="person-desc">进步人士，影响了朱枫走上革命道路。</div>
+                    <div class="person-source">📚 丹心素裹</div>
+                    <div class="person-tags"><span class="tag">进步人士</span><span class="tag">革命启蒙</span></div>
+                </div>
+</div></div>
+    </div>
+</body>
+</html>
