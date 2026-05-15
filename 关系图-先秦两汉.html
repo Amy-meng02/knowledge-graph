@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人物关系图 - 先秦两汉 | 梦梦的知识图谱</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0f0f23 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #container { width: 100vw; height: 100vh; position: relative; }
+        #graph { width: 100%; height: 100%; }
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.15);
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            color: #fff;
+            z-index: 100;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .back-link:hover { background: rgba(255,255,255,0.25); }
+        #search-box {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+        #search-input {
+            width: 280px;
+            padding: 12px 20px;
+            border: 2px solid rgba(100,180,255,0.3);
+            border-radius: 25px;
+            background: rgba(20,30,50,0.9);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+        #search-input:focus { border-color: rgba(100,180,255,0.8); }
+        #search-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: #fff;
+            cursor: pointer;
+        }
+        #stats-box {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(20,30,50,0.95);
+            border: 1px solid rgba(100,180,255,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            min-width: 160px;
+        }
+        #stats-box h3 { color: #fff; margin-bottom: 10px; font-size: 14px; }
+        .stat-row { display: flex; justify-content: space-between; color: #aaa; font-size: 12px; margin: 4px 0; }
+        .stat-value { color: #4a90e2; font-weight: bold; }
+        .node { cursor: pointer; }
+        .node:hover { filter: brightness(1.3); }
+        .node-circle { stroke: #fff; stroke-width: 2px; }
+        .node-label { fill: #fff; font-size: 11px; text-anchor: middle; pointer-events: none; }
+        .link { stroke-opacity: 0.6; }
+        .link-label { fill: #aaa; font-size: 10px; text-anchor: middle; pointer-events: none; }
+        #tooltip {
+            position: absolute;
+            background: rgba(20,30,50,0.98);
+            border: 1px solid rgba(100,180,255,0.5);
+            border-radius: 10px;
+            padding: 15px;
+            max-width: 300px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 200;
+        }
+        #tooltip h4 { color: #ffd700; margin-bottom: 8px; font-size: 16px; }
+        #tooltip p { color: #ccc; font-size: 13px; line-height: 1.4; margin: 5px 0; }
+        #tooltip .era { color: #888; font-size: 12px; margin-top: 8px; }
+        .empty-state { text-align: center; padding: 100px; color: #666; }
+    </style>
+</head>
+<body>
+    <a href="首页.html" class="back-link">← 返回首页</a>
+    <div id="search-box">
+        <input type="text" id="search-input" placeholder="搜索人物名称...">
+        <button id="search-btn">搜索</button>
+    </div>
+    <div id="stats-box">
+        <h3>📊 图谱统计</h3>
+        <div class="stat-row"><span>人物数量</span><span class="stat-value">28</span></div>
+        <div class="stat-row"><span>关系数量</span><span class="stat-value">6</span></div>
+    </div>
+    <div id="container">
+        <svg id="graph"></svg>
+    </div>
+    <div id="tooltip"></div>
+    
+    <script>
+        const nodes = [{"id": "person_hanwendi", "name": "汉文帝刘恒", "era": "西汉", "desc": "西汉皇帝，以节俭著称，穿草鞋上朝（履不借以视朝）"}, {"id": "person_liuzhi", "name": "卢植", "era": "东汉末", "desc": "东汉末年名儒，马融弟子，刘备老师。曹操评价：名著海内，学为儒宗，士之楷模，国之桢干"}, {"id": "person_marong", "name": "马融", "era": "东汉", "desc": "东汉经学大师，门下弟子千人。授课时让侍女伴舞以测试弟子定力"}, {"id": "person_liubei", "name": "刘备", "era": "东汉末", "desc": "东汉末年枭雄，蜀汉开国皇帝。早年曾师从卢植学习，以卖草鞋为生"}, {"id": "person_dongzhuo", "name": "董卓", "era": "东汉末", "desc": "东汉末年权臣，专权废立。卢植公开反对其废帝之举，但他忌惮卢植名声不敢杀之"}, {"id": "person_caocao", "name": "曹操", "era": "东汉末", "desc": "东汉末年枭雄，魏武帝。曾评价卢植：名著海内，学为儒宗，士之楷模，国之桢干"}, {"id": "person_7", "name": "墨子", "era": "战国", "desc": "战国时期思想家，墨家学派创始人"}, {"id": "person_36", "name": "许慎", "era": "东汉", "desc": "东汉经学大师，著《说文解字》，是文字学的奠基人"}, {"id": "person_37", "name": "伏羲", "era": "上古", "desc": "传说中的人文始祖，相传八卦为其所画"}, {"id": "person_38", "name": "仓颉", "era": "上古", "desc": "传说中造字的圣人"}, {"id": "person_39", "name": "周公", "era": "西周", "desc": "周文王之子，制礼作乐，被儒家尊为元圣"}, {"id": "person_40", "name": "屈原", "era": "战国", "desc": "楚国诗人，《楚辞》的奠基人"}, {"id": "person_41", "name": "宋玉", "era": "战国", "desc": "楚国辞赋家，屈原弟子"}, {"id": "person_42", "name": "伏生", "era": "西汉", "desc": "秦末汉初儒生，壁藏《尚书》"}, {"id": "person_43", "name": "苏秦", "era": "战国", "desc": "战国纵横家，合纵派的代表人物"}, {"id": "person_44", "name": "张仪", "era": "战国", "desc": "战国纵横家，连横派的代表人物"}, {"id": "person_45", "name": "吕不韦", "era": "战国", "desc": "秦相国，主持编撰《吕氏春秋》"}, {"id": "person_46", "name": "李斯", "era": "秦", "desc": "秦朝丞相，推行郡县制、统一文字"}, {"id": "person_47", "name": "秦始皇", "era": "秦", "desc": "秦朝开国皇帝，统一六国"}, {"id": "person_54", "name": "司马迁", "era": "西汉", "desc": "史学家，著《史记》，创立纪传体"}, {"id": "person_55", "name": "班固", "era": "东汉", "desc": "史学家，著《汉书》"}, {"id": "person_66", "name": "孔子", "era": "春秋", "desc": "儒家学派创始人"}, {"id": "person_67", "name": "孟子", "era": "战国", "desc": "儒家亚圣，继承并发展孔子学说"}, {"id": "person_68", "name": "荀子", "era": "战国", "desc": "儒家思想家，提出性恶论"}, {"id": "person_69", "name": "老子", "era": "春秋", "desc": "道家学派创始人"}, {"id": "person_70", "name": "庄子", "era": "战国", "desc": "道家代表人物"}, {"id": "person_71", "name": "韩非子", "era": "战国", "desc": "法家集大成者"}, {"id": "person_134", "name": "汉武帝", "era": "西汉", "desc": "西汉皇帝，开疆拓土"}];
+        const links = [{"source": "person_liuzhi", "target": "person_marong", "relation": "师徒", "desc": "卢植是马融的弟子"}, {"source": "person_liubei", "target": "person_liuzhi", "relation": "师徒", "desc": "刘备曾师从卢植学习"}, {"source": "person_liuzhi", "target": "person_dongzhuo", "relation": "对抗", "desc": "卢植公开反对董卓废帝"}, {"source": "person_dongzhuo", "target": "person_liuzhi", "relation": "忌惮", "desc": "董卓因忌惮卢植名望而不敢杀他"}, {"source": "person_caocao", "target": "person_liuzhi", "relation": "评价", "desc": "曹操高度评价卢植：名著海内，学为儒宗，士之楷模，国之桢干"}, {"source": "person_40", "target": "person_41", "relation": "师徒", "desc": "宋玉是屈原的弟子"}];
+        
+        const relationColors = {"师徒": "#4CAF50", "夫妻": "#E91E63", "父子": "#FF9800", "兄弟": "#9C27B0", "对抗": "#F44336", "评价": "#00BCD4", "朋友": "#8BC34A", "同事": "#607D8B", "师生": "#4CAF50", "暗恋": "#E91E63", "暗恋对象": "#E91E63", "恋人": "#E91E63", "爱人": "#E91E63", "女友": "#E91E63", "青梅竹马": "#E91E63", "作者": "#9C27B0", "主人公": "#2196F3", "参与": "#FF5722", "关联": "#795548", "影响": "#00BCD4", "所属朝代": "#607D8B", "典故关联": "#FFC107", "关联事件": "#FFC107", "对立": "#F44336", "引用": "#9E9E9E", "默认": "#888888"};
+        
+        if (nodes.length === 0) {
+            document.getElementById('graph').outerHTML = '<div class="empty-state"><h2>暂无人物数据</h2><p>该时代暂无可视化的人物关系</p></div>';
+        } else {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
+            const svg = d3.select('#graph')
+                .attr('width', width)
+                .attr('height', height);
+            
+            // 添加缩放
+            const g = svg.append('g');
+            svg.call(d3.zoom().scaleExtent([0.3, 3]).on('zoom', (event) => {
+                g.attr('transform', event.transform);
+            }));
+            
+            // 力导向模拟
+            const simulation = d3.forceSimulation(nodes)
+                .force('link', d3.forceLink(links).id(d => d.id).distance(120))
+                .force('charge', d3.forceManyBody().strength(-300))
+                .force('center', d3.forceCenter(width/2, height/2))
+                .force('collision', d3.forceCollide().radius(40));
+            
+            // 连线
+            const link = g.append('g')
+                .selectAll('line')
+                .data(links)
+                .join('line')
+                .attr('class', 'link')
+                .attr('stroke', d => relationColors[d.relation] || relationColors['默认'])
+                .attr('stroke-width', 2);
+            
+            // 连线标签
+            const linkLabel = g.append('g')
+                .selectAll('text')
+                .data(links)
+                .join('text')
+                .attr('class', 'link-label')
+                .text(d => d.relation)
+                .attr('font-size', '10px')
+                .attr('fill', '#888');
+            
+            // 节点组
+            const node = g.append('g')
+                .selectAll('g')
+                .data(nodes)
+                .join('g')
+                .attr('class', 'node')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+            
+            // 节点圆
+            node.append('circle')
+                .attr('class', 'node-circle')
+                .attr('r', 20)
+                .attr('fill', d => {
+                    if (d.era.includes('汉') || d.era.includes('秦') || d.era.includes('周') || d.era.includes('战国') || d.era.includes('上古') || d.era.includes('春秋')) return '#e74c3c';
+                    if (d.era.includes('魏') || d.era.includes('晋') || d.era.includes('南北朝')) return '#9b59b6';
+                    if (d.era.includes('唐') || d.era.includes('宋') || d.era.includes('元')) return '#f39c12';
+                    if (d.era.includes('明') || d.era.includes('清') || d.era.includes('近代')) return '#27ae60';
+                    if (d.era.includes('现代') || d.era.includes('当代')) return '#3498db';
+                    return '#95a5a6';
+                });
+            
+            // 节点标签
+            node.append('text')
+                .attr('class', 'node-label')
+                .attr('dy', 35)
+                .text(d => d.name);
+            
+            // 节点交互
+            node.on('mouseover', function(event, d) {
+                const tooltip = document.getElementById('tooltip');
+                tooltip.style.opacity = 1;
+                tooltip.style.left = (event.pageX + 15) + 'px';
+                tooltip.style.top = (event.pageY - 10) + 'px';
+                tooltip.innerHTML = `<h4>${d.name}</h4><p>${d.desc}</p><div class="era">📅 ${d.era}</div>`;
+                
+                // 高亮相关连线
+                link.attr('stroke-opacity', l => 
+                    l.source.id === d.id || l.target.id === d.id ? 1 : 0.15);
+                linkLabel.attr('fill-opacity', l =>
+                    l.source.id === d.id || l.target.id === d.id ? 1 : 0.15);
+            })
+            .on('mouseout', function() {
+                document.getElementById('tooltip').style.opacity = 0;
+                link.attr('stroke-opacity', 0.6);
+                linkLabel.attr('fill-opacity', 1);
+            });
+            
+            // 更新位置
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+                
+                linkLabel
+                    .attr('x', d => (d.source.x + d.target.x) / 2)
+                    .attr('y', d => (d.source.y + d.target.y) / 2);
+                
+                node.attr('transform', d => `translate(${d.x},${d.y})`);
+            });
+            
+            // 拖拽函数
+            function dragstarted(event) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                event.subject.fx = event.subject.x;
+                event.subject.fy = event.subject.y;
+            }
+            function dragged(event) {
+                event.subject.fx = event.x;
+                event.subject.fy = event.y;
+            }
+            function dragended(event) {
+                if (!event.active) simulation.alphaTarget(0);
+                event.subject.fx = null;
+                event.subject.fy = null;
+            }
+            
+            // 搜索功能
+            document.getElementById('search-btn').addEventListener('click', searchNode);
+            document.getElementById('search-input').addEventListener('keypress', e => {
+                if (e.key === 'Enter') searchNode();
+            });
+            
+            function searchNode() {
+                const name = document.getElementById('search-input').value.trim();
+                if (!name) return;
+                
+                const found = nodes.find(n => n.name.includes(name));
+                if (found) {
+                    const nodeData = nodes.find(n => n.id === found.id);
+                    nodeData.fx = width / 2;
+                    nodeData.fy = height / 2;
+                    simulation.alpha(1).restart();
+                    setTimeout(() => {
+                        nodeData.fx = null;
+                        nodeData.fy = null;
+                    }, 1000);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
