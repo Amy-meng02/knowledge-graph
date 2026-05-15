@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人物关系图 - 明清近代 | 梦梦的知识图谱</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0f0f23 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #container { width: 100vw; height: 100vh; position: relative; }
+        #graph { width: 100%; height: 100%; }
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.15);
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            color: #fff;
+            z-index: 100;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .back-link:hover { background: rgba(255,255,255,0.25); }
+        #search-box {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+        #search-input {
+            width: 280px;
+            padding: 12px 20px;
+            border: 2px solid rgba(100,180,255,0.3);
+            border-radius: 25px;
+            background: rgba(20,30,50,0.9);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+        #search-input:focus { border-color: rgba(100,180,255,0.8); }
+        #search-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: #fff;
+            cursor: pointer;
+        }
+        #stats-box {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(20,30,50,0.95);
+            border: 1px solid rgba(100,180,255,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            min-width: 160px;
+        }
+        #stats-box h3 { color: #fff; margin-bottom: 10px; font-size: 14px; }
+        .stat-row { display: flex; justify-content: space-between; color: #aaa; font-size: 12px; margin: 4px 0; }
+        .stat-value { color: #4a90e2; font-weight: bold; }
+        .node { cursor: pointer; }
+        .node:hover { filter: brightness(1.3); }
+        .node-circle { stroke: #fff; stroke-width: 2px; }
+        .node-label { fill: #fff; font-size: 11px; text-anchor: middle; pointer-events: none; }
+        .link { stroke-opacity: 0.6; }
+        .link-label { fill: #aaa; font-size: 10px; text-anchor: middle; pointer-events: none; }
+        #tooltip {
+            position: absolute;
+            background: rgba(20,30,50,0.98);
+            border: 1px solid rgba(100,180,255,0.5);
+            border-radius: 10px;
+            padding: 15px;
+            max-width: 300px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 200;
+        }
+        #tooltip h4 { color: #ffd700; margin-bottom: 8px; font-size: 16px; }
+        #tooltip p { color: #ccc; font-size: 13px; line-height: 1.4; margin: 5px 0; }
+        #tooltip .era { color: #888; font-size: 12px; margin-top: 8px; }
+        .empty-state { text-align: center; padding: 100px; color: #666; }
+    </style>
+</head>
+<body>
+    <a href="首页.html" class="back-link">← 返回首页</a>
+    <div id="search-box">
+        <input type="text" id="search-input" placeholder="搜索人物名称...">
+        <button id="search-btn">搜索</button>
+    </div>
+    <div id="stats-box">
+        <h3>📊 图谱统计</h3>
+        <div class="stat-row"><span>人物数量</span><span class="stat-value">78</span></div>
+        <div class="stat-row"><span>关系数量</span><span class="stat-value">17</span></div>
+    </div>
+    <div id="container">
+        <svg id="graph"></svg>
+    </div>
+    <div id="tooltip"></div>
+    
+    <script>
+        const nodes = [{"id": "person_chenyinkque", "name": "陈寅恪", "era": "近代", "desc": "近代著名历史学家、国学大师。'恪'字应读ke，不读que"}, {"id": "person_1", "name": "康素珍", "era": "近代", "desc": "《我的妓女生涯》主人公，旧社会底层女性，以自传形式记录二十年悲惨遭遇"}, {"id": "person_2", "name": "袁世凯", "era": "近代", "desc": "北洋军阀总统，签订二十一条"}, {"id": "person_3", "name": "蒋介石", "era": "近代", "desc": "中华民国总统，国民党总裁"}, {"id": "person_4", "name": "陈诚", "era": "近代", "desc": "国民党将领，曾任参谋总长"}, {"id": "person_5", "name": "杨杰", "era": "近代", "desc": "国民党将领，陆军大学教育长"}, {"id": "person_6", "name": "郭汝瑰", "era": "近代", "desc": "国民党中将，后投奔共产党，抗日战争中战功卓著"}, {"id": "person_8", "name": "郭汝栋", "era": "近代", "desc": "郭汝瑰的兄长，川军将领，曾任军长"}, {"id": "person_9", "name": "张铮", "era": "近代", "desc": "联合中学校长，毕业于日本东京帝国大学，教育救国论者"}, {"id": "person_10", "name": "杨森", "era": "近代", "desc": "四川军阀，曾任四川省主席，在军阀混战中崛起"}, {"id": "person_11", "name": "陈廷栋", "era": "近代", "desc": "郭汝瑰的同学好友，曾建议郭去广东参加革命"}, {"id": "person_12", "name": "熊克武", "era": "近代", "desc": "四川靖国军总司令，辛亥革命元勋"}, {"id": "person_13", "name": "田中义一", "era": "近代", "desc": "日本首相，制定侵华的'田中奏折'"}, {"id": "person_14", "name": "方学兰", "era": "近代", "desc": "郭汝瑰的妻子"}, {"id": "person_15", "name": "胡琏", "era": "近代", "desc": "国民党将领，在抗日战争中与郭汝瑰共事"}, {"id": "person_16", "name": "韩炼成", "era": "近代", "desc": "郭汝瑰的同事和好友，实际上是共产党员"}, {"id": "person_17", "name": "吕文贞", "era": "近代", "desc": "郭汝瑰的同事，陆大研究员"}, {"id": "person_18", "name": "张叙曾", "era": "近代", "desc": "陆大研究员，后被发现是军统特务"}, {"id": "person_19", "name": "戴季韬", "era": "近代", "desc": "国民党将领，在暂五师吃缺谎报军饷"}, {"id": "person_20", "name": "刘湘", "era": "近代", "desc": "四川军阀，国民党一级上将，曾任四川省主席"}, {"id": "person_21", "name": "谭延闿", "era": "近代", "desc": "湘军司令，与宋美龄有渊源，拒绝孙中山为其做媒续弦"}, {"id": "person_22", "name": "宋美龄", "era": "近代", "desc": "蒋介石夫人，中华民国第一夫人"}, {"id": "person_23", "name": "薛岳", "era": "近代", "desc": "国民党将领，第九战区司令长官"}, {"id": "person_24", "name": "王耀武", "era": "近代", "desc": "国民党将领，为人圆滑善于交际"}, {"id": "person_50", "name": "方苞", "era": "清", "desc": "清代散文家，桐城派的开创者"}, {"id": "person_51", "name": "姚鼐", "era": "清", "desc": "清代散文家，桐城派集大成者"}, {"id": "person_52", "name": "梁启超", "era": "近代", "desc": "近代思想家，'新文体'的倡导者"}, {"id": "person_53", "name": "胡适", "era": "近代", "desc": "近代学者，白话文运动的主要倡导者"}, {"id": "person_65", "name": "曾国藩", "era": "清", "desc": "政治家、军事家，中兴桐城派"}, {"id": "person_82", "name": "亚瑟/牛虻", "era": "近代", "desc": "《牛虻》主人公，本名亚瑟·勃尔顿，后成为革命者'牛虻'"}, {"id": "person_83", "name": "蒙泰尼里", "era": "近代", "desc": "《牛虻》人物，天主教神父，后成为红衣主教，实为亚瑟的生父"}, {"id": "person_84", "name": "琼玛", "era": "近代", "desc": "《牛虻》人物，勇敢坚定的革命女性，亚瑟的挚爱"}, {"id": "person_85", "name": "波拉", "era": "近代", "desc": "《牛虻》人物，青年意大利党成员，曾被亚瑟无意间出卖"}, {"id": "person_86", "name": "卡尔狄神父", "era": "近代", "desc": "《牛虻》人物，天主教神父，欺骗亚瑟导致其出卖同志"}, {"id": "person_87", "name": "伏尼契", "era": "近代", "desc": "艾捷尔·丽莲·伏尼契，爱尔兰女作家，《牛虻》作者"}, {"id": "person_88", "name": "韩丁", "era": "近代", "desc": "伏尼契的孙子，受《西行漫记》影响来到延安，写成《翻身》"}, {"id": "person_89", "name": "寒春", "era": "近代", "desc": "伏尼契的孙女，美国科学家，参与原子弹研制，后在中国从事农业科技"}, {"id": "person_ludingyi", "name": "陆定一", "era": "近代", "desc": "伟大的共产主义战士，杰出的无产阶级革命家，曾负责党的宣传文教工作"}, {"id": "person_liuruiheng", "name": "刘瑞恒", "era": "近代", "desc": "曾任协和医院院长，后任国民党卫生部长，美帝国主义培养的医生"}, {"id": "person_douweilian", "name": "窦维廉", "era": "近代", "desc": "美帝国主义分子，协和医学院教授，进行人体实验"}, {"id": "person_shidiwenseng", "name": "史蒂文森", "era": "近代", "desc": "美帝国主义分子，协和解剖学系副教授，曾处理孙中山遗体防腐"}, {"id": "person_liushihao", "name": "刘士豪", "era": "近代", "desc": "中国著名内分泌学家，在钙磷代谢与骨代谢疾病研究方面取得卓越成就"}, {"id": "person_sunzhongshan_quan", "name": "孙中山（逝世）", "era": "近代", "desc": "中国民主革命先驱，1925年逝世，遗体由协和进行防腐处理，肝脏被偷制成标本"}, {"id": "person_budasheng", "name": "步达生", "era": "近代", "desc": "加拿大古人类学家，1926年来到协和解剖系，与中国合作者一起发现了'北京人'化石"}, {"id": "person_wenyichuan", "name": "闻一传", "era": "近代", "desc": "闻一多的弟弟，1926-1927年在协和解剖系任教，毕业于芝加哥大学，胚胎学家"}, {"id": "person_wuxian", "name": "吴宪", "era": "近代", "desc": "20世纪上半叶中国最伟大的科学家之一，发明了Folin-Wu血液分析法测定血糖"}, {"id": "person_chenkehui", "name": "陈克恢", "era": "近代", "desc": "协和医学院药理系助教，从麻黄中分离出左旋麻黄碱，完成世界著名的麻黄素研究"}, {"id": "person_lanansheng", "name": "兰安生", "era": "近代", "desc": "美国医学家、公共卫生专家，1921年来华，在协和讲授公共卫生学，提出'60%有效的本土运动'名言"}, {"id": "person_linkesheng", "name": "林可胜", "era": "近代", "desc": "1921年任全国医学协会会长，呼吁关注农村医疗需要"}, {"id": "person_humei", "name": "胡美", "era": "近代", "desc": "湘雅医学院院长，1921年来协和参加开幕典礼，描述中国医疗危机数字"}, {"id": "person_91", "name": "纪昀/纪晓岚", "era": "清代", "desc": "清代政治家、文学家、学者，字晓岚，《四库全书》总纂官，《阅微草堂笔记》作者"}, {"id": "person_100", "name": "袁殊", "era": "近代", "desc": "中共秘密特工，身兼军统、中统、日伪、青帮多重身份，为革命做出重大贡献"}, {"id": "person_101", "name": "潘汉年", "era": "近代", "desc": "中共情报工作负责人，袁殊的直接上级"}, {"id": "person_102", "name": "岩井", "era": "近代", "desc": "日本外务省特工头目，袁殊的日本情报来源渠道"}, {"id": "person_103", "name": "王子春", "era": "近代", "desc": "袁殊的上线联系人，负责收取袁殊的党费"}, {"id": "person_104", "name": "王天木", "era": "近代", "desc": "军统特工，后被怀疑而怒而投敌"}, {"id": "person_105", "name": "李士群", "era": "近代", "desc": "汪伪特工总部76号头目"}, {"id": "person_106", "name": "丁默村", "era": "近代", "desc": "汪伪特工总部76号头目"}, {"id": "person_107", "name": "杜月笙", "era": "近代", "desc": "上海滩流氓大亨，兼具黑帮领袖与社会名流身份"}, {"id": "person_108", "name": "戴笠", "era": "近代", "desc": "军统负责人，与杜月笙有合作关系"}, {"id": "person_131", "name": "吴石", "era": "近代", "desc": "潜伏将军，国民党中将，秘密党员，为解放战争做出重大贡献"}, {"id": "person_132", "name": "陈碧莲", "era": "近代", "desc": "吴石之妻"}, {"id": "person_137", "name": "郑和", "era": "明", "desc": "明代航海家，七下西洋"}, {"id": "person_zhufeng", "name": "朱枫", "era": "近代", "desc": "朱枫（1905-1950），原名朱谌之，浙江镇海富商之女，后成为中共隐蔽战线情报员，1950年在台湾..."}, {"id": "person_zhuxiaoguang", "name": "朱晓光", "era": "近代", "desc": "朱枫的革命伴侣，新知书店负责人。"}, {"id": "person_chenchouqing", "name": "陈绶卿", "era": "近代", "desc": "朱枫的第一任丈夫，病逝后朱枫投身革命。"}, {"id": "person_wushishi", "name": "吴石", "era": "近代", "desc": "国民党国防部参谋次长，秘密为中共提供情报，朱枫的接头人。"}, {"id": "person_caixiaoqian", "name": "蔡孝乾", "era": "近代", "desc": "台湾省工作委员会书记，被捕后叛变，导致朱枫暴露。"}, {"id": "person_shenanna", "name": "沈安娜", "era": "近代", "desc": "被誉为'按住蒋介石脉搏的速记员'，潜伏国民党核心机关14年的中共情报员。"}, {"id": "person_huamingzhi", "name": "华明之", "era": "近代", "desc": "沈安娜的丈夫，革命伴侣，也是情报员。"}, {"id": "person_zhouenlai", "name": "周恩来", "era": "近代", "desc": "中共重要领导人，派遣沈安娜潜伏。"}, {"id": "person_dengyingchao", "name": "邓颖超", "era": "近代", "desc": "周恩来夫人，对沈安娜有重要指导。"}, {"id": "person_xuzhonghang", "name": "徐仲航", "era": "近代", "desc": "沈安娜的直接领导人，1942年被捕。"}, {"id": "person_wukefan", "name": "吴克坚", "era": "近代", "desc": "情报工作领导人，派遣并指导沈安娜。"}, {"id": "person_shuriuxin", "name": "舒曰信", "era": "近代", "desc": "共产党员，沈安娜的思想启蒙者。"}, {"id": "person_chenbilao", "name": "陈布雷", "era": "近代", "desc": "蒋介石侍从室主任，沈安娜见证其死亡。"}, {"id": "person_zhirujiahao", "name": "朱家骅", "era": "近代", "desc": "国民党高官，沈安娜打入国民党的引荐人。"}, {"id": "person_zhangzhongfan", "name": "张仲实", "era": "近代", "desc": "进步人士，影响了朱枫走上革命道路。"}];
+        const links = [{"source": "person_6", "target": "person_8", "relation": "兄弟", "desc": "郭汝瑰是郭汝栋的弟弟"}, {"source": "person_6", "target": "person_14", "relation": "夫妻", "desc": "郭汝瑰的妻子是方学兰"}, {"source": "person_8", "target": "person_20", "relation": "对抗", "desc": "郭汝栋屈服于刘湘的压力"}, {"source": "person_15", "target": "person_6", "relation": "同事", "desc": "胡琏与郭汝瑰在抗日战争中共事"}, {"source": "person_16", "target": "person_6", "relation": "战友", "desc": "韩炼成是郭汝瑰的好友，实际上是共产党员"}, {"source": "person_82", "target": "person_83", "relation": "父子", "desc": "亚瑟是蒙泰尼里的私生子"}, {"source": "person_82", "target": "person_84", "relation": "恋人", "desc": "亚瑟深爱琼玛"}, {"source": "person_82", "target": "person_85", "relation": "同志", "desc": "亚瑟与波拉是青年意大利党同志"}, {"source": "person_82", "target": "person_86", "relation": "被欺骗", "desc": "亚瑟被卡尔狄神父欺骗而出卖同志"}, {"source": "person_87", "target": "person_88", "relation": "祖孙", "desc": "韩丁是伏尼契的孙子"}, {"source": "person_87", "target": "person_89", "relation": "祖孙", "desc": "寒春是伏尼契的孙女"}, {"source": "person_ludingyi", "target": "person_liuruiheng", "relation": "庇护", "desc": "陆定一庇护刘瑞恒"}, {"source": "person_liuruiheng", "target": "person_lanansheng", "relation": "关联", "desc": "刘瑞恒由兰安生安排当卫生部长"}, {"source": "person_100", "target": "person_101", "relation": "上下级", "desc": "袁殊在潘汉年领导下工作"}, {"source": "person_100", "target": "person_102", "relation": "情报来源", "desc": "岩井是袁殊的日本情报来源"}, {"source": "person_107", "target": "person_108", "relation": "合作", "desc": "杜月笙与戴笠有合作关系"}, {"source": "person_131", "target": "person_132", "relation": "夫妻", "desc": "吴石与陈碧莲是夫妻"}];
+        
+        const relationColors = {"师徒": "#4CAF50", "夫妻": "#E91E63", "父子": "#FF9800", "兄弟": "#9C27B0", "对抗": "#F44336", "评价": "#00BCD4", "朋友": "#8BC34A", "同事": "#607D8B", "师生": "#4CAF50", "暗恋": "#E91E63", "暗恋对象": "#E91E63", "恋人": "#E91E63", "爱人": "#E91E63", "女友": "#E91E63", "青梅竹马": "#E91E63", "作者": "#9C27B0", "主人公": "#2196F3", "参与": "#FF5722", "关联": "#795548", "影响": "#00BCD4", "所属朝代": "#607D8B", "典故关联": "#FFC107", "关联事件": "#FFC107", "对立": "#F44336", "引用": "#9E9E9E", "默认": "#888888"};
+        
+        if (nodes.length === 0) {
+            document.getElementById('graph').outerHTML = '<div class="empty-state"><h2>暂无人物数据</h2><p>该时代暂无可视化的人物关系</p></div>';
+        } else {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
+            const svg = d3.select('#graph')
+                .attr('width', width)
+                .attr('height', height);
+            
+            // 添加缩放
+            const g = svg.append('g');
+            svg.call(d3.zoom().scaleExtent([0.3, 3]).on('zoom', (event) => {
+                g.attr('transform', event.transform);
+            }));
+            
+            // 力导向模拟
+            const simulation = d3.forceSimulation(nodes)
+                .force('link', d3.forceLink(links).id(d => d.id).distance(120))
+                .force('charge', d3.forceManyBody().strength(-300))
+                .force('center', d3.forceCenter(width/2, height/2))
+                .force('collision', d3.forceCollide().radius(40));
+            
+            // 连线
+            const link = g.append('g')
+                .selectAll('line')
+                .data(links)
+                .join('line')
+                .attr('class', 'link')
+                .attr('stroke', d => relationColors[d.relation] || relationColors['默认'])
+                .attr('stroke-width', 2);
+            
+            // 连线标签
+            const linkLabel = g.append('g')
+                .selectAll('text')
+                .data(links)
+                .join('text')
+                .attr('class', 'link-label')
+                .text(d => d.relation)
+                .attr('font-size', '10px')
+                .attr('fill', '#888');
+            
+            // 节点组
+            const node = g.append('g')
+                .selectAll('g')
+                .data(nodes)
+                .join('g')
+                .attr('class', 'node')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+            
+            // 节点圆
+            node.append('circle')
+                .attr('class', 'node-circle')
+                .attr('r', 20)
+                .attr('fill', d => {
+                    if (d.era.includes('汉') || d.era.includes('秦') || d.era.includes('周') || d.era.includes('战国') || d.era.includes('上古') || d.era.includes('春秋')) return '#e74c3c';
+                    if (d.era.includes('魏') || d.era.includes('晋') || d.era.includes('南北朝')) return '#9b59b6';
+                    if (d.era.includes('唐') || d.era.includes('宋') || d.era.includes('元')) return '#f39c12';
+                    if (d.era.includes('明') || d.era.includes('清') || d.era.includes('近代')) return '#27ae60';
+                    if (d.era.includes('现代') || d.era.includes('当代')) return '#3498db';
+                    return '#95a5a6';
+                });
+            
+            // 节点标签
+            node.append('text')
+                .attr('class', 'node-label')
+                .attr('dy', 35)
+                .text(d => d.name);
+            
+            // 节点交互
+            node.on('mouseover', function(event, d) {
+                const tooltip = document.getElementById('tooltip');
+                tooltip.style.opacity = 1;
+                tooltip.style.left = (event.pageX + 15) + 'px';
+                tooltip.style.top = (event.pageY - 10) + 'px';
+                tooltip.innerHTML = `<h4>${d.name}</h4><p>${d.desc}</p><div class="era">📅 ${d.era}</div>`;
+                
+                // 高亮相关连线
+                link.attr('stroke-opacity', l => 
+                    l.source.id === d.id || l.target.id === d.id ? 1 : 0.15);
+                linkLabel.attr('fill-opacity', l =>
+                    l.source.id === d.id || l.target.id === d.id ? 1 : 0.15);
+            })
+            .on('mouseout', function() {
+                document.getElementById('tooltip').style.opacity = 0;
+                link.attr('stroke-opacity', 0.6);
+                linkLabel.attr('fill-opacity', 1);
+            });
+            
+            // 更新位置
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+                
+                linkLabel
+                    .attr('x', d => (d.source.x + d.target.x) / 2)
+                    .attr('y', d => (d.source.y + d.target.y) / 2);
+                
+                node.attr('transform', d => `translate(${d.x},${d.y})`);
+            });
+            
+            // 拖拽函数
+            function dragstarted(event) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                event.subject.fx = event.subject.x;
+                event.subject.fy = event.subject.y;
+            }
+            function dragged(event) {
+                event.subject.fx = event.x;
+                event.subject.fy = event.y;
+            }
+            function dragended(event) {
+                if (!event.active) simulation.alphaTarget(0);
+                event.subject.fx = null;
+                event.subject.fy = null;
+            }
+            
+            // 搜索功能
+            document.getElementById('search-btn').addEventListener('click', searchNode);
+            document.getElementById('search-input').addEventListener('keypress', e => {
+                if (e.key === 'Enter') searchNode();
+            });
+            
+            function searchNode() {
+                const name = document.getElementById('search-input').value.trim();
+                if (!name) return;
+                
+                const found = nodes.find(n => n.name.includes(name));
+                if (found) {
+                    const nodeData = nodes.find(n => n.id === found.id);
+                    nodeData.fx = width / 2;
+                    nodeData.fy = height / 2;
+                    simulation.alpha(1).restart();
+                    setTimeout(() => {
+                        nodeData.fx = null;
+                        nodeData.fy = null;
+                    }, 1000);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
