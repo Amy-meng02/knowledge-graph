@@ -1,0 +1,2643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史年表 - 梦梦的知识图谱</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'SimHei', sans-serif;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            border-bottom: 3px solid rgba(255,255,255,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ffd700, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            color: #a0a0a0;
+            font-size: 1.1em;
+        }
+        
+        /* 筛选器 */
+        .filter-bar {
+            position: sticky;
+            top: 0;
+            background: rgba(15, 52, 96, 0.95);
+            padding: 15px 20px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+        
+        .filter-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.4);
+        }
+        
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: transparent;
+        }
+        
+        /* 时间线容器 */
+        .timeline-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* 时代区块 */
+        .era-section {
+            margin-bottom: 50px;
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+        
+        .era-section.hidden {
+            display: none;
+        }
+        
+        .era-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid;
+        }
+        
+        .era-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            padding: 10px 25px;
+            border-radius: 8px;
+            color: #fff;
+        }
+        
+        .era-count {
+            margin-left: 15px;
+            font-size: 0.9em;
+            color: #a0a0a0;
+        }
+        
+        /* 事件卡片 */
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .event-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .event-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .event-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+        
+        .event-desc {
+            color: #ccc;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+        
+        .event-source {
+            margin-top: 12px;
+            font-size: 0.85em;
+            color: #888;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 10px;
+        }
+        
+        /* 人物区块 */
+        .persons-section {
+            margin-top: 30px;
+        }
+        
+        .persons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        
+        .person-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.3s;
+        }
+        
+        .person-card:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateX(5px);
+        }
+        
+        .person-name {
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 8px;
+            font-size: 1.05em;
+        }
+        
+        .person-desc {
+            color: #aaa;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        
+        .person-tags {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .tag {
+            padding: 3px 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            font-size: 0.8em;
+            color: #aaa;
+        }
+        
+        /* 统计信息 */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            margin-bottom: 30px;
+            border-radius: 12px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-num {
+            font-size: 2em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stat-label {
+            color: #888;
+            font-size: 0.9em;
+        }
+        
+        /* 展开/收起 */
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 5px 10px;
+            transition: transform 0.3s;
+        }
+        
+        .toggle-btn.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        .content-wrapper {
+            max-height: 5000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+        
+        .content-wrapper.collapsed {
+            max-height: 0;
+        }
+        
+        /* 弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .modal-close {
+            float: right;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+        
+        .modal-title {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+        
+        .modal-body {
+            color: #ccc;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📜 历史年表</h1>
+        <p>梦梦的知识图谱 - 从上古到当代的知识长河</p>
+    </div>
+    
+    <div class="filter-bar">
+        <button class="filter-btn active" data-era="all">全部时代</button>
+        <button class="filter-btn" data-era="上古">上古</button>
+        <button class="filter-btn" data-era="西周">西周</button>
+        <button class="filter-btn" data-era="春秋">春秋</button>
+        <button class="filter-btn" data-era="战国">战国</button>
+        <button class="filter-btn" data-era="秦">秦</button>
+        <button class="filter-btn" data-era="西汉">西汉</button>
+        <button class="filter-btn" data-era="东汉">东汉</button>
+        <button class="filter-btn" data-era="东汉末">东汉末</button>
+        <button class="filter-btn" data-era="魏晋">魏晋</button>
+        <button class="filter-btn" data-era="东晋">东晋</button>
+        <button class="filter-btn" data-era="南朝">南朝</button>
+        <button class="filter-btn" data-era="唐">唐</button>
+        <button class="filter-btn" data-era="唐代">唐代</button>
+        <button class="filter-btn" data-era="北宋">北宋</button>
+        <button class="filter-btn" data-era="南宋">南宋</button>
+        <button class="filter-btn" data-era="明">明</button>
+        <button class="filter-btn" data-era="清">清</button>
+        <button class="filter-btn" data-era="清代">清代</button>
+        <button class="filter-btn" data-era="近代">近代</button>
+        <button class="filter-btn" data-era="现代">现代</button>
+        <button class="filter-btn" data-era="当代">当代</button>
+        <button class="filter-btn" data-era="神话">神话</button>
+        <button class="filter-btn" data-era="19世纪">19世纪</button>
+        <button class="filter-btn" data-era="18世纪">18世纪</button>
+        <button class="filter-btn" data-era="16-17世纪">16-17世纪</button>
+        <button class="filter-btn" data-era="18-19世纪">18-19世纪</button>
+    </div>
+    
+    <div class="stats">
+        <div class="stat-item">
+            <div class="stat-num">234</div>
+            <div class="stat-label">历史人物</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">41</div>
+            <div class="stat-label">历史事件</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">26</div>
+            <div class="stat-label">涵盖时代</div>
+        </div>
+    </div>
+    
+    <div class="timeline-container">
+
+        <div class="era-section" data-era="上古">
+            <div class="era-header" style="border-color: #8B4513;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #8B4513;">上古</div>
+                <span class="era-count">
+                    2人物 / 0事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">伏羲</div>
+                            <div class="person-desc">传说中的人文始祖，相传八卦为其所画</div>
+                            <div class="person-tags"><span class="tag">神话</span><span class="tag">人文始祖</span><span class="tag">八卦</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">仓颉</div>
+                            <div class="person-desc">传说中造字的圣人</div>
+                            <div class="person-tags"><span class="tag">神话</span><span class="tag">造字</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="西周">
+            <div class="era-header" style="border-color: #CD853F;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #CD853F;">西周</div>
+                <span class="era-count">
+                    1人物 / 0事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">周公</div>
+                            <div class="person-desc">周文王之子，制礼作乐，被儒家尊为元圣</div>
+                            <div class="person-tags"><span class="tag">周初</span><span class="tag">礼乐</span><span class="tag">儒家</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="春秋">
+            <div class="era-header" style="border-color: #DAA520;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #DAA520;">春秋</div>
+                <span class="era-count">
+                    2人物 / 0事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">孔子</div>
+                            <div class="person-desc">儒家学派创始人</div>
+                            <div class="person-tags"><span class="tag">思想家</span><span class="tag">儒家</span><span class="tag">春秋</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">老子</div>
+                            <div class="person-desc">道家学派创始人</div>
+                            <div class="person-tags"><span class="tag">思想家</span><span class="tag">道家</span><span class="tag">春秋</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="战国">
+            <div class="era-header" style="border-color: #B8860B;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #B8860B;">战国</div>
+                <span class="era-count">
+                    10人物 / 0事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">墨子</div>
+                            <div class="person-desc">战国时期思想家，墨家学派创始人</div>
+                            <div class="person-tags"><span class="tag">思想家</span><span class="tag">墨家</span><span class="tag">战国</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">屈原</div>
+                            <div class="person-desc">楚国诗人，《楚辞》的奠基人</div>
+                            <div class="person-tags"><span class="tag">诗人</span><span class="tag">楚辞</span><span class="tag">战国</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">宋玉</div>
+                            <div class="person-desc">楚国辞赋家，屈原弟子</div>
+                            <div class="person-tags"><span class="tag">辞赋</span><span class="tag">屈原弟子</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">苏秦</div>
+                            <div class="person-desc">战国纵横家，合纵派的代表人物</div>
+                            <div class="person-tags"><span class="tag">纵横家</span><span class="tag">合纵</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">张仪</div>
+                            <div class="person-desc">战国纵横家，连横派的代表人物</div>
+                            <div class="person-tags"><span class="tag">纵横家</span><span class="tag">连横</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">吕不韦</div>
+                            <div class="person-desc">秦相国，主持编撰《吕氏春秋》</div>
+                            <div class="person-tags"><span class="tag">秦相</span><span class="tag">杂家</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">孟子</div>
+                            <div class="person-desc">儒家亚圣，继承并发展孔子学说</div>
+                            <div class="person-tags"><span class="tag">思想家</span><span class="tag">儒家</span><span class="tag">战国</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">荀子</div>
+                            <div class="person-desc">儒家思想家，提出性恶论</div>
+                            <div class="person-tags"><span class="tag">思想家</span><span class="tag">儒家</span><span class="tag">战国</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">庄子</div>
+                            <div class="person-desc">道家代表人物</div>
+                            <div class="person-tags"><span class="tag">思想家</span><span class="tag">道家</span><span class="tag">战国</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">韩非子</div>
+                            <div class="person-desc">法家集大成者</div>
+                            <div class="person-tags"><span class="tag">思想家</span><span class="tag">法家</span><span class="tag">战国</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="秦">
+            <div class="era-header" style="border-color: #696969;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #696969;">秦</div>
+                <span class="era-count">
+                    2人物 / 0事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">李斯</div>
+                            <div class="person-desc">秦朝丞相，推行郡县制、统一文字</div>
+                            <div class="person-tags"><span class="tag">秦相</span><span class="tag">法家</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">秦始皇</div>
+                            <div class="person-desc">秦朝开国皇帝，统一六国</div>
+                            <div class="person-tags"><span class="tag">皇帝</span><span class="tag">秦</span><span class="tag">统一</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="西汉">
+            <div class="era-header" style="border-color: #2E8B57;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #2E8B57;">西汉</div>
+                <span class="era-count">
+                    4人物 / 1事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">📌 历史事件</h3>
+                <div class="events-grid">
+
+                    <div class="event-card" onclick="showModal('履不借以视朝', '典故：汉代草鞋别名'不借'，汉文帝穿着草鞋上朝处理政务，成为节俭的表率', '古代公务员生存指南')">
+                        <div class="event-title">履不借以视朝</div>
+                        <div class="event-desc">典故：汉代草鞋别名'不借'，汉文帝穿着草鞋上朝处理政务，成为节俭的表率</div>
+                        <div class="event-source">📖 古代公务员生存指南</div>
+                    </div>
+
+                </div>
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">汉文帝刘恒</div>
+                            <div class="person-desc">西汉皇帝，以节俭著称，穿草鞋上朝（履不借以视朝）</div>
+                            <div class="person-tags"><span class="tag">皇帝</span><span class="tag">节俭</span><span class="tag">西汉</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">伏生</div>
+                            <div class="person-desc">秦末汉初儒生，壁藏《尚书》</div>
+                            <div class="person-tags"><span class="tag">儒生</span><span class="tag">尚书</span><span class="tag">传承</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">司马迁</div>
+                            <div class="person-desc">史学家，著《史记》，创立纪传体</div>
+                            <div class="person-tags"><span class="tag">史学家</span><span class="tag">史记</span><span class="tag">纪传体</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">汉武帝</div>
+                            <div class="person-desc">西汉皇帝，开疆拓土</div>
+                            <div class="person-tags"><span class="tag">皇帝</span><span class="tag">西汉</span><span class="tag">汉武</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="东汉">
+            <div class="era-header" style="border-color: #3CB371;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #3CB371;">东汉</div>
+                <span class="era-count">
+                    3人物 / 1事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">📌 历史事件</h3>
+                <div class="events-grid">
+
+                    <div class="event-card" onclick="showModal('马融定力实验', '马融在授课时安排侍女伴舞，观察哪位弟子能保持定力不受诱惑', '古代公务员生存指南')">
+                        <div class="event-title">马融定力实验</div>
+                        <div class="event-desc">马融在授课时安排侍女伴舞，观察哪位弟子能保持定力不受诱惑</div>
+                        <div class="event-source">📖 古代公务员生存指南</div>
+                    </div>
+
+                </div>
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">马融</div>
+                            <div class="person-desc">东汉经学大师，门下弟子千人。授课时让侍女伴舞以测试弟子定力</div>
+                            <div class="person-tags"><span class="tag">经学</span><span class="tag">东汉</span><span class="tag">教育</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">许慎</div>
+                            <div class="person-desc">东汉经学大师，著《说文解字》，是文字学的奠基人</div>
+                            <div class="person-tags"><span class="tag">经学</span><span class="tag">文字学</span><span class="tag">东汉</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">班固</div>
+                            <div class="person-desc">史学家，著《汉书》</div>
+                            <div class="person-tags"><span class="tag">史学家</span><span class="tag">汉书</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="东汉末">
+            <div class="era-header" style="border-color: #20B2AA;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #20B2AA;">东汉末</div>
+                <span class="era-count">
+                    4人物 / 1事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">📌 历史事件</h3>
+                <div class="events-grid">
+
+                    <div class="event-card" onclick="showModal('卢植抗言董卓', '董卓欲废帝立新君，卢植公开反对。董卓虽然恼怒，但因忌惮卢植的名望而不敢杀他', '古代公务员生存指南')">
+                        <div class="event-title">卢植抗言董卓</div>
+                        <div class="event-desc">董卓欲废帝立新君，卢植公开反对。董卓虽然恼怒，但因忌惮卢植的名望而不敢杀他</div>
+                        <div class="event-source">📖 古代公务员生存指南</div>
+                    </div>
+
+                </div>
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">卢植</div>
+                            <div class="person-desc">东汉末年名儒，马融弟子，刘备老师。曹操评价：名著海内，学为儒宗，士之楷模，国之桢干</div>
+                            <div class="person-tags"><span class="tag">名儒</span><span class="tag">东汉</span><span class="tag">师道</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">刘备</div>
+                            <div class="person-desc">东汉末年枭雄，蜀汉开国皇帝。早年曾师从卢植学习，以卖草鞋为生</div>
+                            <div class="person-tags"><span class="tag">蜀汉</span><span class="tag">皇帝</span><span class="tag">东汉末</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">董卓</div>
+                            <div class="person-desc">东汉末年权臣，专权废立。卢植公开反对其废帝之举，但他忌惮卢植名声不敢杀之</div>
+                            <div class="person-tags"><span class="tag">权臣</span><span class="tag">东汉末</span><span class="tag">专权</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">曹操</div>
+                            <div class="person-desc">东汉末年枭雄，魏武帝。曾评价卢植：名著海内，学为儒宗，士之楷模，国之桢干</div>
+                            <div class="person-tags"><span class="tag">魏武</span><span class="tag">东汉末</span><span class="tag">政治家</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="魏晋">
+            <div class="era-header" style="border-color: #48D1CC;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #48D1CC;">魏晋</div>
+                <span class="era-count">
+                    1人物 / 0事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">阮籍</div>
+                            <div class="person-desc">魏晋诗人，'竹林七贤'之一</div>
+                            <div class="person-tags"><span class="tag">诗人</span><span class="tag">竹林七贤</span><span class="tag">魏晋</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="东晋">
+            <div class="era-header" style="border-color: #40E0D0;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #40E0D0;">东晋</div>
+                <span class="era-count">
+                    1人物 / 0事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">陶渊明</div>
+                            <div class="person-desc">东晋诗人，开创田园诗派。'采菊东篱下，悠然见南山'为其名句</div>
+                            <div class="person-tags"><span class="tag">诗人</span><span class="tag">东晋</span><span class="tag">田园诗</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="南朝">
+            <div class="era-header" style="border-color: #00CED1;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #00CED1;">南朝</div>
+                <span class="era-count">
+                    1人物 / 0事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">谢灵运</div>
+                            <div class="person-desc">南朝诗人，山水诗派的开创者</div>
+                            <div class="person-tags"><span class="tag">诗人</span><span class="tag">山水诗</span><span class="tag">南朝</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="唐">
+            <div class="era-header" style="border-color: #DC143C;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #DC143C;">唐</div>
+                <span class="era-count">
+                    6人物 / 0事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">李白</div>
+                            <div class="person-desc">诗人，'诗仙'</div>
+                            <div class="person-tags"><span class="tag">诗人</span><span class="tag">唐</span><span class="tag">诗仙</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">杜甫</div>
+                            <div class="person-desc">诗人，'诗圣'</div>
+                            <div class="person-tags"><span class="tag">诗人</span><span class="tag">唐</span><span class="tag">诗圣</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">白居易</div>
+                            <div class="person-desc">诗人，新乐府运动倡导者</div>
+                            <div class="person-tags"><span class="tag">诗人</span><span class="tag">唐</span><span class="tag">新乐府</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">李商隐</div>
+                            <div class="person-desc">诗人，晚唐诗人的代表</div>
+                            <div class="person-tags"><span class="tag">诗人</span><span class="tag">唐</span><span class="tag">晚唐</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">杜牧</div>
+                            <div class="person-desc">诗人，与李商隐并称'小李杜'</div>
+                            <div class="person-tags"><span class="tag">诗人</span><span class="tag">唐</span><span class="tag">晚唐</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">武则天</div>
+                            <div class="person-desc">中国历史上唯一的女皇帝</div>
+                            <div class="person-tags"><span class="tag">皇帝</span><span class="tag">女皇</span><span class="tag">唐朝</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="唐代">
+            <div class="era-header" style="border-color: #DC143C;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #DC143C;">唐代</div>
+                <span class="era-count">
+                    3人物 / 1事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">📌 历史事件</h3>
+                <div class="events-grid">
+
+                    <div class="event-card" onclick="showModal('永贞革新', '唐顺宗时期的政治改革，刘禹锡参与其中', '刘禹锡传')">
+                        <div class="event-title">永贞革新</div>
+                        <div class="event-desc">唐顺宗时期的政治改革，刘禹锡参与其中</div>
+                        <div class="event-source">📖 刘禹锡传</div>
+                    </div>
+
+                </div>
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">刘禹锡</div>
+                            <div class="person-desc">唐代诗人，字梦得，与柳宗元并称刘柳</div>
+                            <div class="person-tags"><span class="tag">诗人</span><span class="tag">唐代</span><span class="tag">刘柳</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">柳宗元</div>
+                            <div class="person-desc">唐代文学家，与刘禹锡为挚友</div>
+                            <div class="person-tags"><span class="tag">文学家</span><span class="tag">唐代</span><span class="tag">韩柳</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">白居易</div>
+                            <div class="person-desc">唐代诗人，与刘禹锡并称刘白</div>
+                            <div class="person-tags"><span class="tag">诗人</span><span class="tag">唐代</span><span class="tag">新乐府</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="北宋">
+            <div class="era-header" style="border-color: #FFA500;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #FFA500;">北宋</div>
+                <span class="era-count">
+                    6人物 / 0事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">苏轼/苏东坡</div>
+                            <div class="person-desc">北宋文学家、书画家。曾评陶渊明'见南山'胜'望南山'，辨明读音</div>
+                            <div class="person-tags"><span class="tag">文学家</span><span class="tag">北宋</span><span class="tag">诗词</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">程颢</div>
+                            <div class="person-desc">理学家，宋明理学的奠基人之一</div>
+                            <div class="person-tags"><span class="tag">理学家</span><span class="tag">宋明理学</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">程颐</div>
+                            <div class="person-desc">理学家，程颢之弟</div>
+                            <div class="person-tags"><span class="tag">理学家</span><span class="tag">宋明理学</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">欧阳修</div>
+                            <div class="person-desc">文学家，唐宋八大家之一</div>
+                            <div class="person-tags"><span class="tag">文学家</span><span class="tag">北宋</span><span class="tag">唐宋八大家</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">苏轼</div>
+                            <div class="person-desc">文学家，书画家</div>
+                            <div class="person-tags"><span class="tag">文学家</span><span class="tag">北宋</span><span class="tag">诗词</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">黄庭坚</div>
+                            <div class="person-desc">诗人，江西诗派开创者</div>
+                            <div class="person-tags"><span class="tag">诗人</span><span class="tag">北宋</span><span class="tag">江西诗派</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="南宋">
+            <div class="era-header" style="border-color: #FF7F50;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #FF7F50;">南宋</div>
+                <span class="era-count">
+                    2人物 / 0事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">朱熹</div>
+                            <div class="person-desc">理学家，宋明理学的代表人物</div>
+                            <div class="person-tags"><span class="tag">理学家</span><span class="tag">宋明理学</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">岳飞</div>
+                            <div class="person-desc">南宋抗金名将，精忠报国</div>
+                            <div class="person-tags"><span class="tag">将领</span><span class="tag">南宋</span><span class="tag">抗金</span><span class="tag">忠义</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="明">
+            <div class="era-header" style="border-color: #4169E1;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #4169E1;">明</div>
+                <span class="era-count">
+                    1人物 / 0事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">郑和</div>
+                            <div class="person-desc">明代航海家，七下西洋</div>
+                            <div class="person-tags"><span class="tag">航海家</span><span class="tag">明朝</span><span class="tag">外交</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="清">
+            <div class="era-header" style="border-color: #8A2BE2;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #8A2BE2;">清</div>
+                <span class="era-count">
+                    3人物 / 0事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">方苞</div>
+                            <div class="person-desc">清代散文家，桐城派的开创者</div>
+                            <div class="person-tags"><span class="tag">散文</span><span class="tag">桐城派</span><span class="tag">清</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">姚鼐</div>
+                            <div class="person-desc">清代散文家，桐城派集大成者</div>
+                            <div class="person-tags"><span class="tag">散文</span><span class="tag">桐城派</span><span class="tag">清</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">曾国藩</div>
+                            <div class="person-desc">政治家、军事家，中兴桐城派</div>
+                            <div class="person-tags"><span class="tag">政治家</span><span class="tag">清</span><span class="tag">桐城派</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="清代">
+            <div class="era-header" style="border-color: #8A2BE2;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #8A2BE2;">清代</div>
+                <span class="era-count">
+                    1人物 / 1事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">📌 历史事件</h3>
+                <div class="events-grid">
+
+                    <div class="event-card" onclick="showModal('文字狱盛行', '清代思想禁锢严重，文人士大夫常因言论获罪', '阅微草堂笔记')">
+                        <div class="event-title">文字狱盛行</div>
+                        <div class="event-desc">清代思想禁锢严重，文人士大夫常因言论获罪</div>
+                        <div class="event-source">📖 阅微草堂笔记</div>
+                    </div>
+
+                </div>
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">纪昀/纪晓岚</div>
+                            <div class="person-desc">清代政治家、文学家、学者，字晓岚，《四库全书》总纂官，《阅微草堂笔记》作者</div>
+                            <div class="person-tags"><span class="tag">清代</span><span class="tag">文学家</span><span class="tag">官员</span><span class="tag">四库全书</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="近代">
+            <div class="era-header" style="border-color: #708090;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #708090;">近代</div>
+                <span class="era-count">
+                    73人物 / 21事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">📌 历史事件</h3>
+                <div class="events-grid">
+
+                    <div class="event-card" onclick="showModal('二十一条', '1915年袁世凯政府承认的日本对华二十一一条款', '郭汝瑰回忆录')">
+                        <div class="event-title">二十一条</div>
+                        <div class="event-desc">1915年袁世凯政府承认的日本对华二十一一条款</div>
+                        <div class="event-source">📖 郭汝瑰回忆录</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('四一二政变', '1927年4月12日蒋介石在上海发动的反共政变', '郭汝瑰回忆录')">
+                        <div class="event-title">四一二政变</div>
+                        <div class="event-desc">1927年4月12日蒋介石在上海发动的反共政变</div>
+                        <div class="event-source">📖 郭汝瑰回忆录</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('宁汉分裂', '1927年南京国民政府与武汉国民政府的对峙分裂', '郭汝瑰回忆录')">
+                        <div class="event-title">宁汉分裂</div>
+                        <div class="event-desc">1927年南京国民政府与武汉国民政府的对峙分裂</div>
+                        <div class="event-source">📖 郭汝瑰回忆录</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('长沙大火', '1938年11月蒋介石下令焚毁长沙', '郭汝瑰回忆录')">
+                        <div class="event-title">长沙大火</div>
+                        <div class="event-desc">1938年11月蒋介石下令焚毁长沙</div>
+                        <div class="event-source">📖 郭汝瑰回忆录</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('黄河口决堤', '抗战时期蒋介石下令决堤黄河以阻日军', '郭汝瑰回忆录')">
+                        <div class="event-title">黄河口决堤</div>
+                        <div class="event-desc">抗战时期蒋介石下令决堤黄河以阻日军</div>
+                        <div class="event-source">📖 郭汝瑰回忆录</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('暂五师整顿', '郭汝瑰整顿暂五师军纪，枪决违纪士兵', '郭汝瑰回忆录')">
+                        <div class="event-title">暂五师整顿</div>
+                        <div class="event-desc">郭汝瑰整顿暂五师军纪，枪决违纪士兵</div>
+                        <div class="event-source">📖 郭汝瑰回忆录</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('九一八事变', '1931年日本关东军发动九一八事变侵占东北', '郭汝瑰回忆录')">
+                        <div class="event-title">九一八事变</div>
+                        <div class="event-desc">1931年日本关东军发动九一八事变侵占东北</div>
+                        <div class="event-source">📖 郭汝瑰回忆录</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('黄埔军校成立', '1924年孙中山在广州黄埔创办陆军军官学校', '郭汝瑰回忆录')">
+                        <div class="event-title">黄埔军校成立</div>
+                        <div class="event-desc">1924年孙中山在广州黄埔创办陆军军官学校</div>
+                        <div class="event-source">📖 郭汝瑰回忆录</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('北伐战争', '1926-1928年国共合作进行的反帝反封建战争', '郭汝瑰回忆录')">
+                        <div class="event-title">北伐战争</div>
+                        <div class="event-desc">1926-1928年国共合作进行的反帝反封建战争</div>
+                        <div class="event-source">📖 郭汝瑰回忆录</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('血花剧社', '黄埔军校学生组织的话剧社', '郭汝瑰回忆录')">
+                        <div class="event-title">血花剧社</div>
+                        <div class="event-desc">黄埔军校学生组织的话剧社</div>
+                        <div class="event-source">📖 郭汝瑰回忆录</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('整理党务案', '1926年蒋介石颁布的限制共产党活动的议案', '郭汝瑰回忆录')">
+                        <div class="event-title">整理党务案</div>
+                        <div class="event-desc">1926年蒋介石颁布的限制共产党活动的议案</div>
+                        <div class="event-source">📖 郭汝瑰回忆录</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('成城学校事件', '日本收买中国留学生的事件', '郭汝瑰回忆录')">
+                        <div class="event-title">成城学校事件</div>
+                        <div class="event-desc">日本收买中国留学生的事件</div>
+                        <div class="event-source">📖 郭汝瑰回忆录</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('青年意大利党运动', '19世纪意大利民族解放运动', '牛虻')">
+                        <div class="event-title">青年意大利党运动</div>
+                        <div class="event-desc">19世纪意大利民族解放运动</div>
+                        <div class="event-source">📖 牛虻</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('亚瑟信仰崩塌', '亚瑟因被神父欺骗和发现身世秘密而信仰崩塌，远走南美', '牛虻')">
+                        <div class="event-title">亚瑟信仰崩塌</div>
+                        <div class="event-desc">亚瑟因被神父欺骗和发现身世秘密而信仰崩塌，远走南美</div>
+                        <div class="event-source">📖 牛虻</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('牛虻就义', '牛虻被蒙泰尼里下令处死，震动意大利', '牛虻')">
+                        <div class="event-title">牛虻就义</div>
+                        <div class="event-desc">牛虻被蒙泰尼里下令处死，震动意大利</div>
+                        <div class="event-source">📖 牛虻</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('洛克菲勒基金会接管协和', '1915年7月，美国洛克菲勒基金会用20万美元买下北京协和医学堂，又花12.5万美元买下豫王府', '协和医事')">
+                        <div class="event-title">洛克菲勒基金会接管协和</div>
+                        <div class="event-desc">1915年7月，美国洛克菲勒基金会用20万美元买下北京协和医学堂，又花12.5万美元买下豫王府</div>
+                        <div class="event-source">📖 协和医事</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('太平洋战争致协和停办', '1941年12月8日太平洋战争爆发，协和医学院于1月18日完全停办，被日军改作军医及血清研究所', '协和医事')">
+                        <div class="event-title">太平洋战争致协和停办</div>
+                        <div class="event-desc">1941年12月8日太平洋战争爆发，协和医学院于1月18日完全停办，被日军改作军医及血清研究所</div>
+                        <div class="event-source">📖 协和医事</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('北京人头骨化石失踪', '1941年太平洋战争爆发后，存放在协和的北京人头骨化石在转移过程中神秘失踪，至今下落不明', '血泪斑斑旧协和')">
+                        <div class="event-title">北京人头骨化石失踪</div>
+                        <div class="event-desc">1941年太平洋战争爆发后，存放在协和的北京人头骨化石在转移过程中神秘失踪，至今下落不明</div>
+                        <div class="event-source">📖 血泪斑斑旧协和</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('朱枫就义', '1950年6月10日，朱枫在台北马场町刑场从容就义，年仅45岁。', '朱枫传')">
+                        <div class="event-title">朱枫就义</div>
+                        <div class="event-desc">1950年6月10日，朱枫在台北马场町刑场从容就义，年仅45岁。</div>
+                        <div class="event-source">📖 朱枫传</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('朱枫赴台任务', '1949年11月，朱枫受华东局派遣赴台，获取重要军事情报。', '朱枫传')">
+                        <div class="event-title">朱枫赴台任务</div>
+                        <div class="event-desc">1949年11月，朱枫受华东局派遣赴台，获取重要军事情报。</div>
+                        <div class="event-source">📖 朱枫传</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('沈安娜潜伏14年', '1938-1949年，沈安娜潜伏国民党核心机关14年，被誉为'按住蒋介石脉搏的速记员'。', '丹心素裹')">
+                        <div class="event-title">沈安娜潜伏14年</div>
+                        <div class="event-desc">1938-1949年，沈安娜潜伏国民党核心机关14年，被誉为'按住蒋介石脉搏的速记员'。</div>
+                        <div class="event-source">📖 丹心素裹</div>
+                    </div>
+
+                </div>
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">陈寅恪</div>
+                            <div class="person-desc">近代著名历史学家、国学大师。'恪'字应读ke，不读que</div>
+                            <div class="person-tags"><span class="tag">学者</span><span class="tag">近代</span><span class="tag">历史</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">康素珍</div>
+                            <div class="person-desc">《我的妓女生涯》主人公，旧社会底层女性，以自传形式记录二十年悲惨遭遇</div>
+                            <div class="person-tags"><span class="tag">主人公</span><span class="tag">旧社会</span><span class="tag">女性</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">袁世凯</div>
+                            <div class="person-desc">北洋军阀总统，签订二十一条</div>
+                            <div class="person-tags"><span class="tag">军阀</span><span class="tag">总统</span><span class="tag">二十一条</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">蒋介石</div>
+                            <div class="person-desc">中华民国总统，国民党总裁</div>
+                            <div class="person-tags"><span class="tag">总统</span><span class="tag">国民党</span><span class="tag">民国</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">陈诚</div>
+                            <div class="person-desc">国民党将领，曾任参谋总长</div>
+                            <div class="person-tags"><span class="tag">将领</span><span class="tag">国民党</span><span class="tag">民国</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">杨杰</div>
+                            <div class="person-desc">国民党将领，陆军大学教育长</div>
+                            <div class="person-tags"><span class="tag">将领</span><span class="tag">军事理论</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">郭汝瑰</div>
+                            <div class="person-desc">国民党中将，后投奔共产党，抗日战争中战功卓著</div>
+                            <div class="person-tags"><span class="tag">将军</span><span class="tag">国共</span><span class="tag">抗日</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">郭汝栋</div>
+                            <div class="person-desc">郭汝瑰的兄长，川军将领，曾任军长</div>
+                            <div class="person-tags"><span class="tag">将领</span><span class="tag">川军</span><span class="tag">郭汝瑰之兄</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">张铮</div>
+                            <div class="person-desc">联合中学校长，毕业于日本东京帝国大学，教育救国论者</div>
+                            <div class="person-tags"><span class="tag">教育家</span><span class="tag">校长</span><span class="tag">四川</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">杨森</div>
+                            <div class="person-desc">四川军阀，曾任四川省主席，在军阀混战中崛起</div>
+                            <div class="person-tags"><span class="tag">军阀</span><span class="tag">四川</span><span class="tag">民国</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">陈廷栋</div>
+                            <div class="person-desc">郭汝瑰的同学好友，曾建议郭去广东参加革命</div>
+                            <div class="person-tags"><span class="tag">同学</span><span class="tag">革命</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">熊克武</div>
+                            <div class="person-desc">四川靖国军总司令，辛亥革命元勋</div>
+                            <div class="person-tags"><span class="tag">将军</span><span class="tag">辛亥革命</span><span class="tag">四川</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">田中义一</div>
+                            <div class="person-desc">日本首相，制定侵华的'田中奏折'</div>
+                            <div class="person-tags"><span class="tag">日本</span><span class="tag">首相</span><span class="tag">侵华</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">方学兰</div>
+                            <div class="person-desc">郭汝瑰的妻子</div>
+                            <div class="person-tags"><span class="tag">郭汝瑰妻子</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">胡琏</div>
+                            <div class="person-desc">国民党将领，在抗日战争中与郭汝瑰共事</div>
+                            <div class="person-tags"><span class="tag">将领</span><span class="tag">抗日</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">韩炼成</div>
+                            <div class="person-desc">郭汝瑰的同事和好友，实际上是共产党员</div>
+                            <div class="person-tags"><span class="tag">将领</span><span class="tag">秘密党员</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">吕文贞</div>
+                            <div class="person-desc">郭汝瑰的同事，陆大研究员</div>
+                            <div class="person-tags"><span class="tag">将领</span><span class="tag">陆大</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">张叙曾</div>
+                            <div class="person-desc">陆大研究员，后被发现是军统特务</div>
+                            <div class="person-tags"><span class="tag">军统特务</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">戴季韬</div>
+                            <div class="person-desc">国民党将领，在暂五师吃缺谎报军饷</div>
+                            <div class="person-tags"><span class="tag">将领</span><span class="tag">腐败</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">刘湘</div>
+                            <div class="person-desc">四川军阀，国民党一级上将，曾任四川省主席</div>
+                            <div class="person-tags"><span class="tag">军阀</span><span class="tag">四川</span><span class="tag">上将</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">谭延闿</div>
+                            <div class="person-desc">湘军司令，与宋美龄有渊源，拒绝孙中山为其做媒续弦</div>
+                            <div class="person-tags"><span class="tag">军阀</span><span class="tag">湖南</span><span class="tag">政客</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">宋美龄</div>
+                            <div class="person-desc">蒋介石夫人，中华民国第一夫人</div>
+                            <div class="person-tags"><span class="tag">民国</span><span class="tag">第一夫人</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">薛岳</div>
+                            <div class="person-desc">国民党将领，第九战区司令长官</div>
+                            <div class="person-tags"><span class="tag">将领</span><span class="tag">抗日</span><span class="tag">第九战区</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">王耀武</div>
+                            <div class="person-desc">国民党将领，为人圆滑善于交际</div>
+                            <div class="person-tags"><span class="tag">将领</span><span class="tag">国民党</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">梁启超</div>
+                            <div class="person-desc">近代思想家，'新文体'的倡导者</div>
+                            <div class="person-tags"><span class="tag">思想家</span><span class="tag">近代</span><span class="tag">新文化</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">胡适</div>
+                            <div class="person-desc">近代学者，白话文运动的主要倡导者</div>
+                            <div class="person-tags"><span class="tag">学者</span><span class="tag">白话文</span><span class="tag">新文化</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">亚瑟/牛虻</div>
+                            <div class="person-desc">《牛虻》主人公，本名亚瑟·勃尔顿，后成为革命者'牛虻'</div>
+                            <div class="person-tags"><span class="tag">主人公</span><span class="tag">革命者</span><span class="tag">意大利</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">蒙泰尼里</div>
+                            <div class="person-desc">《牛虻》人物，天主教神父，后成为红衣主教，实为亚瑟的生父</div>
+                            <div class="person-tags"><span class="tag">神父</span><span class="tag">生父</span><span class="tag">意大利</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">琼玛</div>
+                            <div class="person-desc">《牛虻》人物，勇敢坚定的革命女性，亚瑟的挚爱</div>
+                            <div class="person-tags"><span class="tag">革命者</span><span class="tag">女友</span><span class="tag">意大利</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">波拉</div>
+                            <div class="person-desc">《牛虻》人物，青年意大利党成员，曾被亚瑟无意间出卖</div>
+                            <div class="person-tags"><span class="tag">革命者</span><span class="tag">同志</span><span class="tag">意大利</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">卡尔狄神父</div>
+                            <div class="person-desc">《牛虻》人物，天主教神父，欺骗亚瑟导致其出卖同志</div>
+                            <div class="person-tags"><span class="tag">神父</span><span class="tag">反派</span><span class="tag">意大利</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">伏尼契</div>
+                            <div class="person-desc">艾捷尔·丽莲·伏尼契，爱尔兰女作家，《牛虻》作者</div>
+                            <div class="person-tags"><span class="tag">作者</span><span class="tag">爱尔兰</span><span class="tag">作家</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">韩丁</div>
+                            <div class="person-desc">伏尼契的孙子，受《西行漫记》影响来到延安，写成《翻身》</div>
+                            <div class="person-tags"><span class="tag">伏尼契后人</span><span class="tag">作家</span><span class="tag">中国</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">寒春</div>
+                            <div class="person-desc">伏尼契的孙女，美国科学家，参与原子弹研制，后在中国从事农业科技</div>
+                            <div class="person-tags"><span class="tag">伏尼契后人</span><span class="tag">科学家</span><span class="tag">中国</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">陆定一</div>
+                            <div class="person-desc">伟大的共产主义战士，杰出的无产阶级革命家，曾负责党的宣传文教工作</div>
+                            <div class="person-tags"><span class="tag">革命家</span><span class="tag">宣传</span><span class="tag">共产党</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">刘瑞恒</div>
+                            <div class="person-desc">曾任协和医院院长，后任国民党卫生部长，美帝国主义培养的医生</div>
+                            <div class="person-tags"><span class="tag">医生</span><span class="tag">协和</span><span class="tag">卫生部长</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">窦维廉</div>
+                            <div class="person-desc">美帝国主义分子，协和医学院教授，进行人体实验</div>
+                            <div class="person-tags"><span class="tag">美帝</span><span class="tag">教授</span><span class="tag">实验</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">史蒂文森</div>
+                            <div class="person-desc">美帝国主义分子，协和解剖学系副教授，曾处理孙中山遗体防腐</div>
+                            <div class="person-tags"><span class="tag">美帝</span><span class="tag">解剖</span><span class="tag">孙中山</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">刘士豪</div>
+                            <div class="person-desc">中国著名内分泌学家，在钙磷代谢与骨代谢疾病研究方面取得卓越成就</div>
+                            <div class="person-tags"><span class="tag">内分泌</span><span class="tag">科学家</span><span class="tag">协和</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">孙中山（逝世）</div>
+                            <div class="person-desc">中国民主革命先驱，1925年逝世，遗体由协和进行防腐处理，肝脏被偷制成标本</div>
+                            <div class="person-tags"><span class="tag">革命先驱</span><span class="tag">逝世</span><span class="tag">协和</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">步达生</div>
+                            <div class="person-desc">加拿大古人类学家，1926年来到协和解剖系，与中国合作者一起发现了'北京人'化石</div>
+                            <div class="person-tags"><span class="tag">科学家</span><span class="tag">古人类学</span><span class="tag">北京人</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">闻一传</div>
+                            <div class="person-desc">闻一多的弟弟，1926-1927年在协和解剖系任教，毕业于芝加哥大学，胚胎学家</div>
+                            <div class="person-tags"><span class="tag">科学家</span><span class="tag">胚胎学</span><span class="tag">闻一多之弟</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">吴宪</div>
+                            <div class="person-desc">20世纪上半叶中国最伟大的科学家之一，发明了Folin-Wu血液分析法测定血糖</div>
+                            <div class="person-tags"><span class="tag">科学家</span><span class="tag">生物化学</span><span class="tag">诺贝尔级</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">陈克恢</div>
+                            <div class="person-desc">协和医学院药理系助教，从麻黄中分离出左旋麻黄碱，完成世界著名的麻黄素研究</div>
+                            <div class="person-tags"><span class="tag">科学家</span><span class="tag">药理学</span><span class="tag">麻黄素</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">兰安生</div>
+                            <div class="person-desc">美国医学家、公共卫生专家，1921年来华，在协和讲授公共卫生学，提出'60%有效的本土运动'名言</div>
+                            <div class="person-tags"><span class="tag">公共卫生</span><span class="tag">美帝</span><span class="tag">名言</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">林可胜</div>
+                            <div class="person-desc">1921年任全国医学协会会长，呼吁关注农村医疗需要</div>
+                            <div class="person-tags"><span class="tag">医学协会</span><span class="tag">会长</span><span class="tag">公共卫生</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">胡美</div>
+                            <div class="person-desc">湘雅医学院院长，1921年来协和参加开幕典礼，描述中国医疗危机数字</div>
+                            <div class="person-tags"><span class="tag">医学教育</span><span class="tag">湘雅</span><span class="tag">院长</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">袁殊</div>
+                            <div class="person-desc">中共秘密特工，身兼军统、中统、日伪、青帮多重身份，为革命做出重大贡献</div>
+                            <div class="person-tags"><span class="tag">特工</span><span class="tag">中共</span><span class="tag">近代史</span><span class="tag">秘密工作</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">潘汉年</div>
+                            <div class="person-desc">中共情报工作负责人，袁殊的直接上级</div>
+                            <div class="person-tags"><span class="tag">特工</span><span class="tag">中共</span><span class="tag">情报</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">岩井</div>
+                            <div class="person-desc">日本外务省特工头目，袁殊的日本情报来源渠道</div>
+                            <div class="person-tags"><span class="tag">日本</span><span class="tag">特工</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">王子春</div>
+                            <div class="person-desc">袁殊的上线联系人，负责收取袁殊的党费</div>
+                            <div class="person-tags"><span class="tag">中共</span><span class="tag">联络人</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">王天木</div>
+                            <div class="person-desc">军统特工，后被怀疑而怒而投敌</div>
+                            <div class="person-tags"><span class="tag">军统</span><span class="tag">叛变</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">李士群</div>
+                            <div class="person-desc">汪伪特工总部76号头目</div>
+                            <div class="person-tags"><span class="tag">汉奸</span><span class="tag">76号</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">丁默村</div>
+                            <div class="person-desc">汪伪特工总部76号头目</div>
+                            <div class="person-tags"><span class="tag">汉奸</span><span class="tag">76号</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">杜月笙</div>
+                            <div class="person-desc">上海滩流氓大亨，兼具黑帮领袖与社会名流身份</div>
+                            <div class="person-tags"><span class="tag">流氓</span><span class="tag">上海滩</span><span class="tag">青帮</span><span class="tag">民国</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">戴笠</div>
+                            <div class="person-desc">军统负责人，与杜月笙有合作关系</div>
+                            <div class="person-tags"><span class="tag">军统</span><span class="tag">特工</span><span class="tag">民国</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">吴石</div>
+                            <div class="person-desc">潜伏将军，国民党中将，秘密党员，为解放战争做出重大贡献</div>
+                            <div class="person-tags"><span class="tag">将军</span><span class="tag">潜伏者</span><span class="tag">共产党</span><span class="tag">烈士</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">陈碧莲</div>
+                            <div class="person-desc">吴石之妻</div>
+                            <div class="person-tags"><span class="tag">女性</span><span class="tag">妻子</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">朱枫</div>
+                            <div class="person-desc">朱枫（1905-1950），原名朱谌之，浙江镇海富商之女，后成为中共隐蔽战线情报员，1950年在台湾就义。</div>
+                            <div class="person-tags"><span class="tag">情报员</span><span class="tag">革命烈士</span><span class="tag">隐蔽战线</span><span class="tag">台湾</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">朱晓光</div>
+                            <div class="person-desc">朱枫的革命伴侣，新知书店负责人。</div>
+                            <div class="person-tags"><span class="tag">革命者</span><span class="tag">情报员</span><span class="tag">朱枫丈夫</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">陈绶卿</div>
+                            <div class="person-desc">朱枫的第一任丈夫，病逝后朱枫投身革命。</div>
+                            <div class="person-tags"><span class="tag">朱枫丈夫</span><span class="tag">已故</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">吴石</div>
+                            <div class="person-desc">国民党国防部参谋次长，秘密为中共提供情报，朱枫的接头人。</div>
+                            <div class="person-tags"><span class="tag">将军</span><span class="tag">国民党</span><span class="tag">秘密党员</span><span class="tag">情报</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">蔡孝乾</div>
+                            <div class="person-desc">台湾省工作委员会书记，被捕后叛变，导致朱枫暴露。</div>
+                            <div class="person-tags"><span class="tag">叛徒</span><span class="tag">台湾</span><span class="tag">情报系统</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">沈安娜</div>
+                            <div class="person-desc">被誉为'按住蒋介石脉搏的速记员'，潜伏国民党核心机关14年的中共情报员。</div>
+                            <div class="person-tags"><span class="tag">情报员</span><span class="tag">隐蔽战线</span><span class="tag">速记员</span><span class="tag">革命</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">华明之</div>
+                            <div class="person-desc">沈安娜的丈夫，革命伴侣，也是情报员。</div>
+                            <div class="person-tags"><span class="tag">情报员</span><span class="tag">沈安娜丈夫</span><span class="tag">革命伴侣</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">周恩来</div>
+                            <div class="person-desc">中共重要领导人，派遣沈安娜潜伏。</div>
+                            <div class="person-tags"><span class="tag">中共</span><span class="tag">领导人</span><span class="tag">隐蔽战线</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">邓颖超</div>
+                            <div class="person-desc">周恩来夫人，对沈安娜有重要指导。</div>
+                            <div class="person-tags"><span class="tag">中共</span><span class="tag">妇女运动</span><span class="tag">隐蔽战线</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">徐仲航</div>
+                            <div class="person-desc">沈安娜的直接领导人，1942年被捕。</div>
+                            <div class="person-tags"><span class="tag">情报员</span><span class="tag">领导</span><span class="tag">被捕</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">吴克坚</div>
+                            <div class="person-desc">情报工作领导人，派遣并指导沈安娜。</div>
+                            <div class="person-tags"><span class="tag">情报员</span><span class="tag">领导</span><span class="tag">隐蔽战线</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">舒曰信</div>
+                            <div class="person-desc">共产党员，沈安娜的思想启蒙者。</div>
+                            <div class="person-tags"><span class="tag">共产党员</span><span class="tag">思想启蒙</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">陈布雷</div>
+                            <div class="person-desc">蒋介石侍从室主任，沈安娜见证其死亡。</div>
+                            <div class="person-tags"><span class="tag">国民党</span><span class="tag">高官</span><span class="tag">蒋介石幕僚</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">朱家骅</div>
+                            <div class="person-desc">国民党高官，沈安娜打入国民党的引荐人。</div>
+                            <div class="person-tags"><span class="tag">国民党</span><span class="tag">高官</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">张仲实</div>
+                            <div class="person-desc">进步人士，影响了朱枫走上革命道路。</div>
+                            <div class="person-tags"><span class="tag">进步人士</span><span class="tag">革命启蒙</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="现代">
+            <div class="era-header" style="border-color: #4682B4;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #4682B4;">现代</div>
+                <span class="era-count">
+                    60人物 / 8事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">📌 历史事件</h3>
+                <div class="events-grid">
+
+                    <div class="event-card" onclick="showModal('水晶之夜', '1938年11月9日纳粹对犹太人的大规模迫害行动', '战起1938')">
+                        <div class="event-title">水晶之夜</div>
+                        <div class="event-desc">1938年11月9日纳粹对犹太人的大规模迫害行动</div>
+                        <div class="event-source">📖 战起1938</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('闪电战波兰', '1939年9月德国入侵波兰，二战全面爆发', '战起1938')">
+                        <div class="event-title">闪电战波兰</div>
+                        <div class="event-desc">1939年9月德国入侵波兰，二战全面爆发</div>
+                        <div class="event-source">📖 战起1938</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('巴黎白色恐怖', '德国占领巴黎期间的严苛统治时期', '战起1938')">
+                        <div class="event-title">巴黎白色恐怖</div>
+                        <div class="event-desc">德国占领巴黎期间的严苛统治时期</div>
+                        <div class="event-source">📖 战起1938</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('敦刻尔克大撤退', '1940年英法联军在敦刻尔克的战略性撤退', '战起1938')">
+                        <div class="event-title">敦刻尔克大撤退</div>
+                        <div class="event-desc">1940年英法联军在敦刻尔克的战略性撤退</div>
+                        <div class="event-source">📖 战起1938</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('诺曼底登陆', '1944年6月盟军在法国诺曼底登陆，开辟第二战场', '战起1938')">
+                        <div class="event-title">诺曼底登陆</div>
+                        <div class="event-desc">1944年6月盟军在法国诺曼底登陆，开辟第二战场</div>
+                        <div class="event-source">📖 战起1938</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('斯大林格勒战役', '1942-1943年苏德战场的决定性战役，二战转折点', '战起1938')">
+                        <div class="event-title">斯大林格勒战役</div>
+                        <div class="event-desc">1942-1943年苏德战场的决定性战役，二战转折点</div>
+                        <div class="event-source">📖 战起1938</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('十月革命', '1917年俄国布尔什维克党领导的社会主义革命，建立苏维埃政权', '钢铁是怎样炼成的')">
+                        <div class="event-title">十月革命</div>
+                        <div class="event-desc">1917年俄国布尔什维克党领导的社会主义革命，建立苏维埃政权</div>
+                        <div class="event-source">📖 钢铁是怎样炼成的</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('协和收归国有', '1951年1月20日，李宗恩发报'本院收归国有'，协和正式收归新中国政府', '协和医事')">
+                        <div class="event-title">协和收归国有</div>
+                        <div class="event-desc">1951年1月20日，李宗恩发报'本院收归国有'，协和正式收归新中国政府</div>
+                        <div class="event-source">📖 协和医事</div>
+                    </div>
+
+                </div>
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">安娜</div>
+                            <div class="person-desc">《回忆中的玛尼》主人公，一个敏感孤独的女孩</div>
+                            <div class="person-tags"><span class="tag">主人公</span><span class="tag">儿童</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">玛妮</div>
+                            <div class="person-desc">安娜在海边遇到的神秘女孩，是安娜的曾祖母</div>
+                            <div class="person-tags"><span class="tag">神秘人物</span><span class="tag">曾祖母</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">佩格太太</div>
+                            <div class="person-desc">安娜的养母的姐妹，照顾安娜</div>
+                            <div class="person-tags"><span class="tag">养母</span><span class="tag">照顾者</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">普雷斯顿太太</div>
+                            <div class="person-desc">付钱照顾安娜的人</div>
+                            <div class="person-tags"><span class="tag">照顾者</span><span class="tag">养母</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">桑德拉</div>
+                            <div class="person-desc">与安娜起过冲突的邻居女孩</div>
+                            <div class="person-tags"><span class="tag">邻居</span><span class="tag">冲突</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">多余儿</div>
+                            <div class="person-desc">在海边划船的男孩，救了安娜</div>
+                            <div class="person-tags"><span class="tag">救命恩人</span><span class="tag">儿童</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">西拉</div>
+                            <div class="person-desc">林赛太太的女儿，与安娜成为朋友</div>
+                            <div class="person-tags"><span class="tag">朋友</span><span class="tag">真相发现</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">林赛太太</div>
+                            <div class="person-desc">海边别墅的新住户，是玛妮的后人</div>
+                            <div class="person-tags"><span class="tag">新住户</span><span class="tag">玛妮后人</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">爱德华</div>
+                            <div class="person-desc">玛妮的表兄，后来与玛妮结婚</div>
+                            <div class="person-tags"><span class="tag">玛妮丈夫</span><span class="tag">表兄</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">埃斯梅</div>
+                            <div class="person-desc">玛妮的女儿，任性，婚姻不幸</div>
+                            <div class="person-tags"><span class="tag">玛妮之女</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">南</div>
+                            <div class="person-desc">玛妮童年时期的看护，虐待玛妮</div>
+                            <div class="person-tags"><span class="tag">看护</span><span class="tag">虐待</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">安迪</div>
+                            <div class="person-desc">《凶火》主人公之一，拥有遥控他人意志的超能力</div>
+                            <div class="person-tags"><span class="tag">主人公</span><span class="tag">超能力</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">薇姬</div>
+                            <div class="person-desc">安迪的妻子，拥有感知心灵的异能</div>
+                            <div class="person-tags"><span class="tag">超能力</span><span class="tag">受害者</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">查莉</div>
+                            <div class="person-desc">安迪和薇姬的女儿，拥有点燃物体的可怕能力</div>
+                            <div class="person-tags"><span class="tag">超能力</span><span class="tag">核心人物</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">雨鸟</div>
+                            <div class="person-desc">'商店'组织的特工，假扮护工接近查莉</div>
+                            <div class="person-tags"><span class="tag">反派</span><span class="tag">商店特工</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">萨提亚</div>
+                            <div class="person-desc">Virginia Satir，美国心理治疗师，家庭治疗创始人，萨提亚模式创立者</div>
+                            <div class="person-tags"><span class="tag">心理学家</span><span class="tag">家庭治疗</span><span class="tag">萨提亚模式</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">秦恬</div>
+                            <div class="person-desc">《战起1938》女主角，来自21世纪的宅女，意外穿越到二战时期的德国</div>
+                            <div class="person-tags"><span class="tag">主人公</span><span class="tag">穿越者</span><span class="tag">二战</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">奥古斯汀·冯·卡尔曼</div>
+                            <div class="person-desc">《战起1938》人物，德国军官，外表俊美，实则灵魂是中国野战军军官罗桐</div>
+                            <div class="person-tags"><span class="tag">军官</span><span class="tag">穿越者</span><span class="tag">二战</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">海因茨上尉</div>
+                            <div class="person-desc">《战起1938》人物，性格古怪，与秦恬、奥古斯汀在战争中命运交织</div>
+                            <div class="person-tags"><span class="tag">军官</span><span class="tag">二战</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">罗桐</div>
+                            <div class="person-desc">奥古斯汀的真实身份，中国野战军军官，灵魂穿越到德国军官体内</div>
+                            <div class="person-tags"><span class="tag">中国军官</span><span class="tag">穿越者</span><span class="tag">二战</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">奥斯特洛夫斯基</div>
+                            <div class="person-desc">尼古拉·阿列克谢耶维奇·奥斯特洛夫斯基（1904-1936），苏联著名无产阶级作家，《钢铁是怎样炼成的》作者</div>
+                            <div class="person-tags"><span class="tag">作家</span><span class="tag">苏联</span><span class="tag">革命</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">保尔·柯察金</div>
+                            <div class="person-desc">《钢铁是怎样炼成的》主人公，具有坚定革命信念、顽强意志的无产阶级战士</div>
+                            <div class="person-tags"><span class="tag">主人公</span><span class="tag">革命战士</span><span class="tag">苏联</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">冬妮娅</div>
+                            <div class="person-desc">《钢铁是怎样炼成的》中的人物，出身资产阶级家庭，与保尔有过恋情</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">资产阶级</span><span class="tag">恋情</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">朱赫来</div>
+                            <div class="person-desc">《钢铁是怎样炼成的》中的人物，布尔什维克党员，保尔革命道路上的引路人</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">革命引路人</span><span class="tag">布尔什维克</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">陈柏生</div>
+                            <div class="person-desc">人民日报记者，1926年出生于安徽安庆，毕业于清华大学中文系，写过《新旧协和》</div>
+                            <div class="person-tags"><span class="tag">记者</span><span class="tag">人民日报</span><span class="tag">清华</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">郎景和</div>
+                            <div class="person-desc">1940年生，中国工程院院士，北京协和医院妇产科主任医师、教授，被誉为'中国妇产科内镜之父'</div>
+                            <div class="person-tags"><span class="tag">院士</span><span class="tag">妇产科</span><span class="tag">协和</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">谭先杰</div>
+                            <div class="person-desc">北京协和医院妇产科肿瘤医生，郎景和的学生，著有《致母亲：一个协和医生的故事》</div>
+                            <div class="person-tags"><span class="tag">医生</span><span class="tag">妇产科</span><span class="tag">协和</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">常青</div>
+                            <div class="person-desc">医学博士，毕业于中国协和医科大学八年制医学系，在美国做博士后研究，《协和医事》作者</div>
+                            <div class="person-tags"><span class="tag">作者</span><span class="tag">医学博士</span><span class="tag">协和</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">宋鸿钊</div>
+                            <div class="person-desc">北京协和医学院著名妇产科专家，'文革'期间被批斗但仍坚守医者职责</div>
+                            <div class="person-tags"><span class="tag">妇产科</span><span class="tag">专家</span><span class="tag">协和精神</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">陈志潜</div>
+                            <div class="person-desc">协和毕业后骑毛驴到定县做农村卫生调查，为中国农村公共卫生事业奠定基础</div>
+                            <div class="person-tags"><span class="tag">公共卫生</span><span class="tag">农村</span><span class="tag">定县</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">李宗恩</div>
+                            <div class="person-desc">1941年任协和代理校长，1951年1月20日代表协和发报'本院收归国有'</div>
+                            <div class="person-tags"><span class="tag">协和</span><span class="tag">代理校长</span><span class="tag">收归国有</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">吴英恺</div>
+                            <div class="person-desc">著名外科专家，提出好医生标准：公、勤、严、廉，创办安贞医院</div>
+                            <div class="person-tags"><span class="tag">外科</span><span class="tag">专家</span><span class="tag">医院管理</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">余宗其</div>
+                            <div class="person-desc">中南财经政法大学教授，《法说聊斋志异》作者</div>
+                            <div class="person-tags"><span class="tag">学者</span><span class="tag">法学</span><span class="tag">文学研究</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">汪文宣</div>
+                            <div class="person-desc">《寒夜》主人公，善良懦弱的知识分子，在贫病交加中孤独死去</div>
+                            <div class="person-tags"><span class="tag">主人公</span><span class="tag">知识分子</span><span class="tag">悲剧</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">曾树生</div>
+                            <div class="person-desc">《寒夜》人物，汪文宣之妻，追求自由与自我价值</div>
+                            <div class="person-tags"><span class="tag">女性</span><span class="tag">追求自由</span><span class="tag">矛盾</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">巴金</div>
+                            <div class="person-desc">中国现代著名作家，《寒夜》《激流三部曲》作者</div>
+                            <div class="person-tags"><span class="tag">作家</span><span class="tag">现代文学</span><span class="tag">四川</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">哈洛韦尔</div>
+                            <div class="person-desc">爱德华·哈洛韦尔，哈佛医学院教授，注意力缺失领域著名专家，《分心不是我的错》作者之一</div>
+                            <div class="person-tags"><span class="tag">心理学家</span><span class="tag">哈佛</span><span class="tag">ADHD专家</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">瑞提</div>
+                            <div class="person-desc">约翰·瑞提，哈佛医学院精神科助理教授，《分心不是我的错》作者之一</div>
+                            <div class="person-tags"><span class="tag">精神科</span><span class="tag">哈佛</span><span class="tag">ADHD专家</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">拉比</div>
+                            <div class="person-desc">国家二级心理咨询师，中级心理治疗师，《聪明却坐不住的孩子》作者</div>
+                            <div class="person-tags"><span class="tag">心理咨询师</span><span class="tag">儿童心理</span><span class="tag">多动症专家</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">巴克利</div>
+                            <div class="person-desc">多动症领域权威专家，《聪明却坐不住的孩子》中家庭教育八步法来源</div>
+                            <div class="person-tags"><span class="tag">多动症专家</span><span class="tag">学者</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">白嘉轩</div>
+                            <div class="person-desc">《白鹿原》主人公，白鹿家族族长，坚守传统道德</div>
+                            <div class="person-tags"><span class="tag">主人公</span><span class="tag">族长</span><span class="tag">传统</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">鹿子霖</div>
+                            <div class="person-desc">《白鹿原》人物，白嘉轩的对手，精于算计</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">投机</span><span class="tag">反派</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">白灵</div>
+                            <div class="person-desc">《白鹿原》人物，白嘉轩之女，投身革命的进步女性</div>
+                            <div class="person-tags"><span class="tag">女性</span><span class="tag">革命者</span><span class="tag">悲剧</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">鹿兆鹏</div>
+                            <div class="person-desc">《白鹿原》人物，鹿子霖之子，坚定的共产党人</div>
+                            <div class="person-tags"><span class="tag">革命者</span><span class="tag">共产党</span><span class="tag">地下党</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">陈忠实</div>
+                            <div class="person-desc">《白鹿原》作者，当代著名作家</div>
+                            <div class="person-tags"><span class="tag">作家</span><span class="tag">茅盾文学奖</span><span class="tag">陕西</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">田小娥</div>
+                            <div class="person-desc">《白鹿原》人物，悲剧女性形象</div>
+                            <div class="person-tags"><span class="tag">女性</span><span class="tag">悲剧</span><span class="tag">反抗</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">周志明</div>
+                            <div class="person-desc">《便衣警察》主人公，年轻的公安民警</div>
+                            <div class="person-tags"><span class="tag">主人公</span><span class="tag">警察</span><span class="tag">正义</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">海岩</div>
+                            <div class="person-desc">著名作家，《便衣警察》《河流如血》《玉观音》等作者</div>
+                            <div class="person-tags"><span class="tag">作家</span><span class="tag">公安文学</span><span class="tag">悬疑</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">陆保良</div>
+                            <div class="person-desc">《河流如血》主人公，在亲情与道义间挣扎成长</div>
+                            <div class="person-tags"><span class="tag">主人公</span><span class="tag">成长</span><span class="tag">警察家庭</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">陆为国</div>
+                            <div class="person-desc">《河流如血》人物，陆保良之父，刚正不阿的老警察</div>
+                            <div class="person-tags"><span class="tag">警察</span><span class="tag">父亲</span><span class="tag">固执</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">法齐娅·库菲</div>
+                            <div class="person-desc">阿富汗唯一女性国会议长，《我不要你死于一事无成》作者</div>
+                            <div class="person-tags"><span class="tag">政治家</span><span class="tag">阿富汗</span><span class="tag">女性领袖</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">胡狼拜月</div>
+                            <div class="person-desc">《刘禹锡传》作者</div>
+                            <div class="person-tags"><span class="tag">作家</span><span class="tag">传记</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">李敖</div>
+                            <div class="person-desc">台湾著名学者、作家，以笔为剑的批判者</div>
+                            <div class="person-tags"><span class="tag">学者</span><span class="tag">作家</span><span class="tag">台湾</span><span class="tag">批判</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">梅吉</div>
+                            <div class="person-desc">《荆棘鸟》女主人公，追寻禁忌之爱的女性</div>
+                            <div class="person-tags"><span class="tag">主人公</span><span class="tag">女性</span><span class="tag">爱情</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">拉尔夫</div>
+                            <div class="person-desc">《荆棘鸟》人物，天主教神父，后升任红衣主教</div>
+                            <div class="person-tags"><span class="tag">神父</span><span class="tag">主教</span><span class="tag">禁忌之爱</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">考琳·麦卡洛</div>
+                            <div class="person-desc">澳大利亚作家，《荆棘鸟》作者</div>
+                            <div class="person-tags"><span class="tag">作家</span><span class="tag">澳大利亚</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">菲奥娜</div>
+                            <div class="person-desc">《荆棘鸟》人物，克利里家族的母亲</div>
+                            <div class="person-tags"><span class="tag">女性</span><span class="tag">母亲</span><span class="tag">隐忍</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">冯啸辰</div>
+                            <div class="person-desc">《大国重工》主人公，穿越者，用专业知识推动中国工业发展</div>
+                            <div class="person-tags"><span class="tag">主人公</span><span class="tag">穿越</span><span class="tag">工业</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">齐橙</div>
+                            <div class="person-desc">《大国重工》作者，中国社科院工业经济研究所博士</div>
+                            <div class="person-tags"><span class="tag">作家</span><span class="tag">工业经济</span><span class="tag">博士</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">刘士欣</div>
+                            <div class="person-desc">《好看的中国历史故事》作者</div>
+                            <div class="person-tags"><span class="tag">作家</span><span class="tag">历史</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="当代">
+            <div class="era-header" style="border-color: #5F9EA0;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #5F9EA0;">当代</div>
+                <span class="era-count">
+                    12人物 / 1事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">📌 历史事件</h3>
+                <div class="events-grid">
+
+                    <div class="event-card" onclick="showModal('英惠素食反抗', '英惠因噩梦决定吃素，拒绝成为暴力链条的一环。', '素食者')">
+                        <div class="event-title">英惠素食反抗</div>
+                        <div class="event-desc">英惠因噩梦决定吃素，拒绝成为暴力链条的一环。</div>
+                        <div class="event-source">📖 素食者</div>
+                    </div>
+
+                </div>
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">冯亦同</div>
+                            <div class="person-desc">南京作家、诗人，《朱枫传》作者。</div>
+                            <div class="person-tags"><span class="tag">作家</span><span class="tag">诗人</span><span class="tag">朱枫传作者</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">向斯</div>
+                            <div class="person-desc">故宫博物院研究员，《这里是故宫》主编。</div>
+                            <div class="person-tags"><span class="tag">学者</span><span class="tag">故宫</span><span class="tag">作者</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">马修·德斯蒙德</div>
+                            <div class="person-desc">美国普林斯顿大学社会学教授，《制造贫困》作者。</div>
+                            <div class="person-tags"><span class="tag">学者</span><span class="tag">社会学</span><span class="tag">美国</span><span class="tag">贫困研究</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">王晚</div>
+                            <div class="person-desc">《跑外卖》作者，2024年失业后跑外卖的女骑手。</div>
+                            <div class="person-tags"><span class="tag">作者</span><span class="tag">外卖骑手</span><span class="tag">女性</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">子禾</div>
+                            <div class="person-desc">《异乡人》作者，十年北漂经历者。</div>
+                            <div class="person-tags"><span class="tag">作者</span><span class="tag">北漂</span><span class="tag">非虚构</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">英惠</div>
+                            <div class="person-desc">《素食者》女主人公，因噩梦拒绝吃肉，象征性反抗父权暴力。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">韩国</span><span class="tag">女性</span><span class="tag">主人公</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">仁惠</div>
+                            <div class="person-desc">《素食者》人物，英惠的姐姐，最终觉醒。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">韩国</span><span class="tag">女性</span><span class="tag">姐姐</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">韩江</div>
+                            <div class="person-desc">韩国作家，2024年获诺贝尔文学奖，《素食者》作者。</div>
+                            <div class="person-tags"><span class="tag">作家</span><span class="tag">韩国</span><span class="tag">诺贝尔</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">加博尔·马特</div>
+                            <div class="person-desc">成瘾心理学专家，《空洞的心》作者。</div>
+                            <div class="person-tags"><span class="tag">心理学家</span><span class="tag">成瘾</span><span class="tag">作者</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">安东尼奥·达马西奥</div>
+                            <div class="person-desc">神经学家，对成瘾与情感有深入研究。</div>
+                            <div class="person-tags"><span class="tag">神经学家</span><span class="tag">科学家</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">克里斯·阿纳德</div>
+                            <div class="person-desc">美国社会学家，《美国底层》作者。</div>
+                            <div class="person-tags"><span class="tag">社会学家</span><span class="tag">美国</span><span class="tag">作者</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">谢莉</div>
+                            <div class="person-desc">《美国底层》中的人物，底层民众代表，信仰上帝作为精神寄托。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">美国</span><span class="tag">底层</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="神话">
+            <div class="era-header" style="border-color: #FF69B4;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #FF69B4;">神话</div>
+                <span class="era-count">
+                    1人物 / 0事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">嫦娥</div>
+                            <div class="person-desc">中国神话中的月亮女神，奔月神话主角</div>
+                            <div class="person-tags"><span class="tag">神话</span><span class="tag">月亮</span><span class="tag">传说</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="19世纪">
+            <div class="era-header" style="border-color: #BC8F8F;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #BC8F8F;">19世纪</div>
+                <span class="era-count">
+                    18人物 / 1事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">📌 历史事件</h3>
+                <div class="events-grid">
+
+                    <div class="event-card" onclick="showModal('巴扎罗夫之死', '巴扎罗夫在解剖尸体时感染伤寒，年仅31岁去世。', '父与子')">
+                        <div class="event-title">巴扎罗夫之死</div>
+                        <div class="event-desc">巴扎罗夫在解剖尸体时感染伤寒，年仅31岁去世。</div>
+                        <div class="event-source">📖 父与子</div>
+                    </div>
+
+                </div>
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">阿列克谢</div>
+                            <div class="person-desc">《赌徒》主人公，从有理想的知识分子堕落为赌瘾奴隶。</div>
+                            <div class="person-tags"><span class="tag">主人公</span><span class="tag">俄国</span><span class="tag">赌徒</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">波琳娜</div>
+                            <div class="person-desc">《赌徒》人物，将军继女，阿列克谢暗恋对象。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">俄国</span><span class="tag">爱情</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">将军</div>
+                            <div class="person-desc">《赌徒》人物，没落贵族，波琳娜的继父。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">俄国</span><span class="tag">贵族</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">德·格里叶</div>
+                            <div class="person-desc">《赌徒》人物，法国高利贷者，觊觎波琳娜的嫁妆。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">俄国</span><span class="tag">反派</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">娜斯坚卡</div>
+                            <div class="person-desc">《白夜》女主人公，在河边哭泣的少女，后来与爱人重逢。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">俄国</span><span class="tag">爱情</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">巴扎罗夫</div>
+                            <div class="person-desc">《父与子》核心人物，平民知识分子，虚无主义者。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">俄国</span><span class="tag">虚无主义</span><span class="tag">主人公</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">阿尔卡季</div>
+                            <div class="person-desc">《父与子》人物，基尔萨诺夫家的大儿子，向往新思想。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">俄国</span><span class="tag">知识分子</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">尼古拉·基尔萨诺夫</div>
+                            <div class="person-desc">《父与子》人物，老一代贵族代表，阿尔卡季之父。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">俄国</span><span class="tag">贵族</span><span class="tag">父亲</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">帕维尔·基尔萨诺夫</div>
+                            <div class="person-desc">《父与子》人物，尼古拉之弟，传统贵族的代表。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">俄国</span><span class="tag">贵族</span><span class="tag">叔父</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">奥金佐娃</div>
+                            <div class="person-desc">《父与子》人物，美丽的贵族寡妇，巴扎罗夫爱上的人。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">俄国</span><span class="tag">贵族</span><span class="tag">爱情</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">屠格涅夫</div>
+                            <div class="person-desc">俄国作家，《父与子》作者。</div>
+                            <div class="person-tags"><span class="tag">作家</span><span class="tag">俄国</span><span class="tag">文学</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">希斯克利夫</div>
+                            <div class="person-desc">《呼啸山庄》主人公，被收养的孤儿，复仇者。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">主人公</span><span class="tag">复仇</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">凯瑟琳</div>
+                            <div class="person-desc">《呼啸山庄》女主人公，希斯克利夫的青梅竹马。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">爱情</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">埃德加·林顿</div>
+                            <div class="person-desc">《呼啸山庄》人物，画眉田庄主人，凯瑟琳的丈夫。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">绅士</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">辛德雷</div>
+                            <div class="person-desc">《呼啸山庄》人物，凯瑟琳之兄，虐待希斯克利夫。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">反派</span><span class="tag">兄长</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">哈里顿</div>
+                            <div class="person-desc">《呼啸山庄》人物，辛德雷之子，最终与凯瑟琳走出仇恨。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">新生代</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">小凯瑟琳</div>
+                            <div class="person-desc">《呼啸山庄》人物，凯瑟琳与林顿之女，象征希望。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">新生代</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">约瑟夫</div>
+                            <div class="person-desc">《呼啸山庄》人物，呼啸山庄的老仆人，虚伪的道德卫道士。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">反派</span><span class="tag">仆人</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="18世纪">
+            <div class="era-header" style="border-color: #D2B48C;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #D2B48C;">18世纪</div>
+                <span class="era-count">
+                    2人物 / 1事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">📌 历史事件</h3>
+                <div class="events-grid">
+
+                    <div class="event-card" onclick="showModal('维特自杀', '维特在爱情与理想双重绝望中用手枪结束生命。', '少年维特之烦恼')">
+                        <div class="event-title">维特自杀</div>
+                        <div class="event-desc">维特在爱情与理想双重绝望中用手枪结束生命。</div>
+                        <div class="event-source">📖 少年维特之烦恼</div>
+                    </div>
+
+                </div>
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">维特</div>
+                            <div class="person-desc">《少年维特之烦恼》主人公，追求个性解放的青年，最终在绝望中自杀。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">德国</span><span class="tag">主人公</span><span class="tag">理想主义</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">绿蒂</div>
+                            <div class="person-desc">《少年维特之烦恼》女主人公，维特一见钟情的少女，已订婚。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">德国</span><span class="tag">爱情</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="16-17世纪">
+            <div class="era-header" style="border-color: #DAA520;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #DAA520;">16-17世纪</div>
+                <span class="era-count">
+                    14人物 / 4事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">📌 历史事件</h3>
+                <div class="events-grid">
+
+                    <div class="event-card" onclick="showModal('麦克白弑君', '在女巫预言和夫人怂恿下，麦克白杀死邓肯王自立为王。', '莎士比亚悲喜剧')">
+                        <div class="event-title">麦克白弑君</div>
+                        <div class="event-desc">在女巫预言和夫人怂恿下，麦克白杀死邓肯王自立为王。</div>
+                        <div class="event-source">📖 莎士比亚悲喜剧</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('奥赛罗杀妻', '奥赛罗听信伊阿古谗言，扼死妻子苔丝狄蒙娜后自杀。', '莎士比亚悲喜剧')">
+                        <div class="event-title">奥赛罗杀妻</div>
+                        <div class="event-desc">奥赛罗听信伊阿古谗言，扼死妻子苔丝狄蒙娜后自杀。</div>
+                        <div class="event-source">📖 莎士比亚悲喜剧</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('李尔王疯癫', '李尔王被女儿背叛后在暴风雨中陷入疯癫。', '莎士比亚悲喜剧')">
+                        <div class="event-title">李尔王疯癫</div>
+                        <div class="event-desc">李尔王被女儿背叛后在暴风雨中陷入疯癫。</div>
+                        <div class="event-source">📖 莎士比亚悲喜剧</div>
+                    </div>
+
+                    <div class="event-card" onclick="showModal('哈姆雷特复仇', '哈姆雷特装疯复仇，最终与克劳狄斯同归于尽。', '莎士比亚悲喜剧')">
+                        <div class="event-title">哈姆雷特复仇</div>
+                        <div class="event-desc">哈姆雷特装疯复仇，最终与克劳狄斯同归于尽。</div>
+                        <div class="event-source">📖 莎士比亚悲喜剧</div>
+                    </div>
+
+                </div>
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">哈姆雷特</div>
+                            <div class="person-desc">《哈姆雷特》主人公，丹麦王子，'生存还是毁灭'的经典独白者。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">王子</span><span class="tag">主人公</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">克劳狄斯</div>
+                            <div class="person-desc">《哈姆雷特》人物，丹麦国王，哈姆雷特的叔父，弑兄篡位者。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">反派</span><span class="tag">国王</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">奥菲莉亚</div>
+                            <div class="person-desc">《哈姆雷特》人物，哈姆雷特的爱人，悲剧性人物。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">爱情</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">奥赛罗</div>
+                            <div class="person-desc">《奥赛罗》主人公，摩尔人将军，因嫉妒杀死妻子。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">主人公</span><span class="tag">将军</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">苔丝狄蒙娜</div>
+                            <div class="person-desc">《奥赛罗》女主人公，奥赛罗的妻子，被伊阿古陷害。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">爱情</span><span class="tag">悲剧</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">伊阿古</div>
+                            <div class="person-desc">《奥赛罗》人物，奥赛罗的旗官，阴谋家。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">反派</span><span class="tag">阴谋家</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">李尔王</div>
+                            <div class="person-desc">《李尔王》主人公，分封国土后被女儿背叛的国王。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">主人公</span><span class="tag">国王</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">考狄利娅</div>
+                            <div class="person-desc">《李尔王》人物，李尔王的小女儿，真诚的象征。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">善良</span><span class="tag">悲剧</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">麦克白</div>
+                            <div class="person-desc">《麦克白》主人公，苏格兰将军，在野心驱使下弑君。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">主人公</span><span class="tag">悲剧英雄</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">麦克白夫人</div>
+                            <div class="person-desc">《麦克白》人物，麦克白之妻，推动丈夫弑君。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">女性</span><span class="tag">悲剧</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">鲍西亚</div>
+                            <div class="person-desc">《威尼斯商人》女主人公，聪明机智，智胜夏洛克。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">女性</span><span class="tag">智慧</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">夏洛克</div>
+                            <div class="person-desc">《威尼斯商人》人物，犹太商人，高利贷者。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">反派</span><span class="tag">犹太人</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">罗瑟琳</div>
+                            <div class="person-desc">《皆大欢喜》女主人公，女扮男装，在森林中成全爱情。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">女性</span><span class="tag">喜剧</span></div>
+                        </div>
+
+                        <div class="person-card">
+                            <div class="person-name">薇奥拉</div>
+                            <div class="person-desc">《第十二夜》女主人公，女扮男装侍奉公爵。</div>
+                            <div class="person-tags"><span class="tag">人物</span><span class="tag">英国</span><span class="tag">女性</span><span class="tag">喜剧</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="era-section" data-era="18-19世纪">
+            <div class="era-header" style="border-color: #CD853F;">
+                <button class="toggle-btn" onclick="toggleSection(this)">▼</button>
+                <div class="era-title" style="background: #CD853F;">18-19世纪</div>
+                <span class="era-count">
+                    1人物 / 0事件
+                </span>
+            </div>
+            <div class="content-wrapper">
+
+                <div class="persons-section">
+                    <h3 style="color: #ffd700; margin: 20px 0 15px; font-size: 1.2em;">👤 历史人物</h3>
+                    <div class="persons-grid">
+
+                        <div class="person-card">
+                            <div class="person-name">歌德</div>
+                            <div class="person-desc">约翰·沃尔夫冈·冯·歌德，德国文豪，《少年维特之烦恼》《浮士德》作者。</div>
+                            <div class="person-tags"><span class="tag">作家</span><span class="tag">德国</span><span class="tag">文豪</span></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    
+    <!-- 弹窗 -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <div class="modal-title" id="modal-title"></div>
+            <div class="modal-body" id="modal-body"></div>
+        </div>
+    </div>
+    
+    <script>
+        // 时代筛选
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const era = btn.dataset.era;
+                document.querySelectorAll('.era-section').forEach(section => {
+                    if (era === 'all' || section.dataset.era === era) {
+                        section.classList.remove('hidden');
+                    } else {
+                        section.classList.add('hidden');
+                    }
+                });
+            });
+        });
+        
+        // 展开/收起
+        function toggleSection(btn) {
+            const wrapper = btn.closest('.era-section').querySelector('.content-wrapper');
+            wrapper.classList.toggle('collapsed');
+            btn.classList.toggle('collapsed');
+        }
+        
+        // 弹窗
+        function showModal(title, desc, source) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-body').innerHTML = '<p>' + desc + '</p>' + 
+                (source ? '<p style="margin-top:20px;color:#888;">📖 来源: ' + source + '</p>' : '');
+            document.getElementById('modal').classList.add('show');
+        }
+        
+        function closeModal() {
+            document.getElementById('modal').classList.remove('show');
+        }
+        
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target.id === 'modal') closeModal();
+        });
+    </script>
+</body>
+</html>
