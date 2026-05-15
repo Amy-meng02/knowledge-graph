@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人物关系图谱 - 梦梦的知识图谱</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0f0f23 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        #graph {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 搜索框 */
+        #search-box {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        #search-input {
+            width: 300px;
+            padding: 12px 20px;
+            border: 2px solid rgba(100, 180, 255, 0.3);
+            border-radius: 25px;
+            background: rgba(20, 30, 50, 0.9);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        #search-input:focus {
+            border-color: rgba(100, 180, 255, 0.8);
+            box-shadow: 0 0 20px rgba(100, 180, 255, 0.3);
+        }
+        
+        #search-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        #search-btn, #reset-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        #search-btn {
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+        }
+        
+        #reset-btn {
+            background: linear-gradient(135deg, #666, #444);
+        }
+        
+        #search-btn:hover, #reset-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        /* 筛选器 */
+        #filter-box {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(20, 30, 50, 0.95);
+            border: 1px solid rgba(100, 180, 255, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            max-height: 70vh;
+            overflow-y: auto;
+            max-width: 180px;
+        }
+        
+        #filter-box h3 {
+            color: #fff;
+            margin-bottom: 12px;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 8px;
+        }
+        
+        .era-filter {
+            display: flex;
+            align-items: center;
+            margin: 6px 0;
+            cursor: pointer;
+        }
+        
+        .era-filter input {
+            margin-right: 8px;
+            accent-color: #708090;
+        }
+        
+        .era-filter label {
+            color: #ccc;
+            font-size: 13px;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .era-count {
+            color: #888;
+            font-size: 11px;
+        }
+        
+        .era-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        /* 统计信息 */
+        #stats-box {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(20, 30, 50, 0.95);
+            border: 1px solid rgba(100, 180, 255, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            min-width: 150px;
+        }
+        
+        #stats-box h3 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            color: #aaa;
+            font-size: 12px;
+            margin: 4px 0;
+        }
+        
+        .stat-value {
+            color: #4a90e2;
+            font-weight: bold;
+        }
+        
+        /* 节点和连线样式 */
+        .node {
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .node:hover {
+            filter: brightness(1.3);
+        }
+        
+        .node-circle {
+            stroke: #fff;
+            stroke-width: 2px;
+        }
+        
+        .node-label {
+            fill: #fff;
+            font-size: 11px;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+        
+        .link {
+            stroke: #555;
+            stroke-opacity: 0.6;
+            stroke-width: 1.5px;
+        }
+        
+        .link.highlight {
+            stroke: #ffd700;
+            stroke-opacity: 1;
+            stroke-width: 3px;
+        }
+        
+        /* 提示框 */
+        #tooltip {
+            position: absolute;
+            display: none;
+            background: rgba(20, 30, 50, 0.95);
+            border: 1px solid rgba(100, 180, 255, 0.5);
+            border-radius: 10px;
+            padding: 15px;
+            max-width: 300px;
+            z-index: 200;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+        
+        #tooltip h4 {
+            color: #ffd700;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+        
+        #tooltip .era-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        
+        #tooltip p {
+            color: #ccc;
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 5px 0;
+        }
+        
+        #tooltip .source {
+            color: #888;
+            font-size: 12px;
+            margin-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 8px;
+        }
+        
+        /* 图例 */
+        #legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(20, 30, 50, 0.9);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+        
+        #legend h4 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            font-size: 12px;
+            color: #aaa;
+        }
+        
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        /* 帮助提示 */
+        #help-tip {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(20, 30, 50, 0.9);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            font-size: 12px;
+            color: #888;
+            max-width: 200px;
+        }
+        
+        #help-tip h4 {
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        
+        #help-tip p {
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <svg id="graph"></svg>
+        
+        <!-- 搜索框 -->
+        <div id="search-box">
+            <input type="text" id="search-input" placeholder="搜索人物名称...">
+            <button id="search-btn">搜索</button>
+            <button id="reset-btn">重置</button>
+        </div>
+        
+        <!-- 筛选器 -->
+        <div id="filter-box">
+            <h3>🕰️ 时代筛选</h3>
+            <div id="era-filters"></div>
+        </div>
+        
+        <!-- 统计 -->
+        <div id="stats-box">
+            <h3>📊 统计信息</h3>
+            <div class="stat-row">
+                <span>人物总数</span>
+                <span class="stat-value" id="stat-persons">234</span>
+            </div>
+            <div class="stat-row">
+                <span>关系总数</span>
+                <span class="stat-value" id="stat-links">237</span>
+            </div>
+            <div class="stat-row">
+                <span>当前显示</span>
+                <span class="stat-value" id="stat-visible">0</span>
+            </div>
+        </div>
+        
+        <!-- 图例 -->
+        <div id="legend">
+            <h4>🎨 时代图例</h4>
+            <div id="legend-items"></div>
+        </div>
+        
+        <!-- 帮助 -->
+        <div id="help-tip">
+            <h4>💡 操作提示</h4>
+            <p>• 拖拽节点移动位置</p>
+            <p>• 滚轮缩放视图</p>
+            <p>• 悬停查看详情</p>
+            <p>• 点击节点高亮关系</p>
+        </div>
+        
+        <!-- 提示框 -->
+        <div id="tooltip"></div>
+    </div>
+    
+    <script>
+        // 嵌入式数据
+        const nodesData = [{"id": "person_hanwendi", "name": "汉文帝刘恒", "era": "西汉", "color": "#2E8B57", "description": "西汉皇帝，以节俭著称，穿草鞋上朝（履不借以视朝）", "source": "古代公务员生存指南", "tags": ["皇帝", "节俭", "西汉"]}, {"id": "person_liuzhi", "name": "卢植", "era": "东汉末", "color": "#20B2AA", "description": "东汉末年名儒，马融弟子，刘备老师。曹操评价：名著海内，学为儒宗，士之楷模，国之桢干", "source": "古代公务员生存指南", "tags": ["名儒", "东汉", "师道"]}, {"id": "person_marong", "name": "马融", "era": "东汉", "color": "#3CB371", "description": "东汉经学大师，门下弟子千人。授课时让侍女伴舞以测试弟子定力", "source": "古代公务员生存指南", "tags": ["经学", "东汉", "教育"]}, {"id": "person_liubei", "name": "刘备", "era": "东汉末", "color": "#20B2AA", "description": "东汉末年枭雄，蜀汉开国皇帝。早年曾师从卢植学习，以卖草鞋为生", "source": "古代公务员生存指南", "tags": ["蜀汉", "皇帝", "东汉末"]}, {"id": "person_dongzhuo", "name": "董卓", "era": "东汉末", "color": "#20B2AA", "description": "东汉末年权臣，专权废立。卢植公开反对其废帝之举，但他忌惮卢植名声不敢杀之", "source": "古代公务员生存指南", "tags": ["权臣", "东汉末", "专权"]}, {"id": "person_caocao", "name": "曹操", "era": "东汉末", "color": "#20B2AA", "description": "东汉末年枭雄，魏武帝。曾评价卢植：名著海内，学为儒宗，士之楷模，国之桢干", "source": "古代公务员生存指南", "tags": ["魏武", "东汉末", "政治家"]}, {"id": "person_taoyuanming", "name": "陶渊明", "era": "东晋", "color": "#40E0D0", "description": "东晋诗人，开创田园诗派。'采菊东篱下，悠然见南山'为其名句", "source": "咬文嚼字二百问", "tags": ["诗人", "东晋", "田园诗"]}, {"id": "person_sushi", "name": "苏轼/苏东坡", "era": "北宋", "color": "#FFA500", "description": "北宋文学家、书画家。曾评陶渊明'见南山'胜'望南山'，辨明读音", "source": "咬文嚼字二百问", "tags": ["文学家", "北宋", "诗词"]}, {"id": "person_chenyinkque", "name": "陈寅恪", "era": "近代", "color": "#708090", "description": "近代著名历史学家、国学大师。'恪'字应读ke，不读que", "source": "咬文嚼字二百问", "tags": ["学者", "近代", "历史"]}, {"id": "person_chang_e", "name": "嫦娥", "era": "神话", "color": "#FF69B4", "description": "中国神话中的月亮女神，奔月神话主角", "source": "咬文嚼字二百问", "tags": ["神话", "月亮", "传说"]}, {"id": "person_1", "name": "康素珍", "era": "近代", "color": "#708090", "description": "《我的妓女生涯》主人公，旧社会底层女性，以自传形式记录二十年悲惨遭遇", "source": "我的妓女生涯", "tags": ["主人公", "旧社会", "女性"]}, {"id": "person_2", "name": "袁世凯", "era": "近代", "color": "#708090", "description": "北洋军阀总统，签订二十一条", "source": "郭汝瑰回忆录", "tags": ["军阀", "总统", "二十一条"]}, {"id": "person_3", "name": "蒋介石", "era": "近代", "color": "#708090", "description": "中华民国总统，国民党总裁", "source": "郭汝瑰回忆录", "tags": ["总统", "国民党", "民国"]}, {"id": "person_4", "name": "陈诚", "era": "近代", "color": "#708090", "description": "国民党将领，曾任参谋总长", "source": "郭汝瑰回忆录", "tags": ["将领", "国民党", "民国"]}, {"id": "person_5", "name": "杨杰", "era": "近代", "color": "#708090", "description": "国民党将领，陆军大学教育长", "source": "郭汝瑰回忆录", "tags": ["将领", "军事理论"]}, {"id": "person_6", "name": "郭汝瑰", "era": "近代", "color": "#708090", "description": "国民党中将，后投奔共产党，抗日战争中战功卓著", "source": "郭汝瑰回忆录", "tags": ["将军", "国共", "抗日"]}, {"id": "person_7", "name": "墨子", "era": "战国", "color": "#B8860B", "description": "战国时期思想家，墨家学派创始人", "source": "郭汝瑰回忆录", "tags": ["思想家", "墨家", "战国"]}, {"id": "person_8", "name": "郭汝栋", "era": "近代", "color": "#708090", "description": "郭汝瑰的兄长，川军将领，曾任军长", "source": "郭汝瑰回忆录", "tags": ["将领", "川军", "郭汝瑰之兄"]}, {"id": "person_9", "name": "张铮", "era": "近代", "color": "#708090", "description": "联合中学校长，毕业于日本东京帝国大学，教育救国论者", "source": "郭汝瑰回忆录", "tags": ["教育家", "校长", "四川"]}, {"id": "person_10", "name": "杨森", "era": "近代", "color": "#708090", "description": "四川军阀，曾任四川省主席，在军阀混战中崛起", "source": "郭汝瑰回忆录", "tags": ["军阀", "四川", "民国"]}, {"id": "person_11", "name": "陈廷栋", "era": "近代", "color": "#708090", "description": "郭汝瑰的同学好友，曾建议郭去广东参加革命", "source": "郭汝瑰回忆录", "tags": ["同学", "革命"]}, {"id": "person_12", "name": "熊克武", "era": "近代", "color": "#708090", "description": "四川靖国军总司令，辛亥革命元勋", "source": "郭汝瑰回忆录", "tags": ["将军", "辛亥革命", "四川"]}, {"id": "person_13", "name": "田中义一", "era": "近代", "color": "#708090", "description": "日本首相，制定侵华的'田中奏折'", "source": "郭汝瑰回忆录", "tags": ["日本", "首相", "侵华"]}, {"id": "person_14", "name": "方学兰", "era": "近代", "color": "#708090", "description": "郭汝瑰的妻子", "source": "郭汝瑰回忆录", "tags": ["郭汝瑰妻子"]}, {"id": "person_15", "name": "胡琏", "era": "近代", "color": "#708090", "description": "国民党将领，在抗日战争中与郭汝瑰共事", "source": "郭汝瑰回忆录", "tags": ["将领", "抗日"]}, {"id": "person_16", "name": "韩炼成", "era": "近代", "color": "#708090", "description": "郭汝瑰的同事和好友，实际上是共产党员", "source": "郭汝瑰回忆录", "tags": ["将领", "秘密党员"]}, {"id": "person_17", "name": "吕文贞", "era": "近代", "color": "#708090", "description": "郭汝瑰的同事，陆大研究员", "source": "郭汝瑰回忆录", "tags": ["将领", "陆大"]}, {"id": "person_18", "name": "张叙曾", "era": "近代", "color": "#708090", "description": "陆大研究员，后被发现是军统特务", "source": "郭汝瑰回忆录", "tags": ["军统特务"]}, {"id": "person_19", "name": "戴季韬", "era": "近代", "color": "#708090", "description": "国民党将领，在暂五师吃缺谎报军饷", "source": "郭汝瑰回忆录", "tags": ["将领", "腐败"]}, {"id": "person_20", "name": "刘湘", "era": "近代", "color": "#708090", "description": "四川军阀，国民党一级上将，曾任四川省主席", "source": "郭汝瑰回忆录", "tags": ["军阀", "四川", "上将"]}, {"id": "person_21", "name": "谭延闿", "era": "近代", "color": "#708090", "description": "湘军司令，与宋美龄有渊源，拒绝孙中山为其做媒续弦", "source": "郭汝瑰回忆录", "tags": ["军阀", "湖南", "政客"]}, {"id": "person_22", "name": "宋美龄", "era": "近代", "color": "#708090", "description": "蒋介石夫人，中华民国第一夫人", "source": "郭汝瑰回忆录", "tags": ["民国", "第一夫人"]}, {"id": "person_23", "name": "薛岳", "era": "近代", "color": "#708090", "description": "国民党将领，第九战区司令长官", "source": "郭汝瑰回忆录", "tags": ["将领", "抗日", "第九战区"]}, {"id": "person_24", "name": "王耀武", "era": "近代", "color": "#708090", "description": "国民党将领，为人圆滑善于交际", "source": "郭汝瑰回忆录", "tags": ["将领", "国民党"]}, {"id": "person_25", "name": "安娜", "era": "现代", "color": "#4682B4", "description": "《回忆中的玛尼》主人公，一个敏感孤独的女孩", "source": "回忆中的玛尼", "tags": ["主人公", "儿童"]}, {"id": "person_26", "name": "玛妮", "era": "现代", "color": "#4682B4", "description": "安娜在海边遇到的神秘女孩，是安娜的曾祖母", "source": "回忆中的玛尼", "tags": ["神秘人物", "曾祖母"]}, {"id": "person_27", "name": "佩格太太", "era": "现代", "color": "#4682B4", "description": "安娜的养母的姐妹，照顾安娜", "source": "回忆中的玛尼", "tags": ["养母", "照顾者"]}, {"id": "person_28", "name": "普雷斯顿太太", "era": "现代", "color": "#4682B4", "description": "付钱照顾安娜的人", "source": "回忆中的玛尼", "tags": ["照顾者", "养母"]}, {"id": "person_29", "name": "桑德拉", "era": "现代", "color": "#4682B4", "description": "与安娜起过冲突的邻居女孩", "source": "回忆中的玛尼", "tags": ["邻居", "冲突"]}, {"id": "person_30", "name": "多余儿", "era": "现代", "color": "#4682B4", "description": "在海边划船的男孩，救了安娜", "source": "回忆中的玛尼", "tags": ["救命恩人", "儿童"]}, {"id": "person_31", "name": "西拉", "era": "现代", "color": "#4682B4", "description": "林赛太太的女儿，与安娜成为朋友", "source": "回忆中的玛尼", "tags": ["朋友", "真相发现"]}, {"id": "person_32", "name": "林赛太太", "era": "现代", "color": "#4682B4", "description": "海边别墅的新住户，是玛妮的后人", "source": "回忆中的玛尼", "tags": ["新住户", "玛妮后人"]}, {"id": "person_33", "name": "爱德华", "era": "现代", "color": "#4682B4", "description": "玛妮的表兄，后来与玛妮结婚", "source": "回忆中的玛尼", "tags": ["玛妮丈夫", "表兄"]}, {"id": "person_34", "name": "埃斯梅", "era": "现代", "color": "#4682B4", "description": "玛妮的女儿，任性，婚姻不幸", "source": "回忆中的玛尼", "tags": ["玛妮之女"]}, {"id": "person_35", "name": "南", "era": "现代", "color": "#4682B4", "description": "玛妮童年时期的看护，虐待玛妮", "source": "回忆中的玛尼", "tags": ["看护", "虐待"]}, {"id": "person_36", "name": "许慎", "era": "东汉", "color": "#3CB371", "description": "东汉经学大师，著《说文解字》，是文字学的奠基人", "source": "经典常谈", "tags": ["经学", "文字学", "东汉"]}, {"id": "person_37", "name": "伏羲", "era": "上古", "color": "#8B4513", "description": "传说中的人文始祖，相传八卦为其所画", "source": "经典常谈", "tags": ["神话", "人文始祖", "八卦"]}, {"id": "person_38", "name": "仓颉", "era": "上古", "color": "#8B4513", "description": "传说中造字的圣人", "source": "经典常谈", "tags": ["神话", "造字"]}, {"id": "person_39", "name": "周公", "era": "西周", "color": "#CD853F", "description": "周文王之子，制礼作乐，被儒家尊为元圣", "source": "经典常谈", "tags": ["周初", "礼乐", "儒家"]}, {"id": "person_40", "name": "屈原", "era": "战国", "color": "#B8860B", "description": "楚国诗人，《楚辞》的奠基人", "source": "经典常谈", "tags": ["诗人", "楚辞", "战国"]}, {"id": "person_41", "name": "宋玉", "era": "战国", "color": "#B8860B", "description": "楚国辞赋家，屈原弟子", "source": "经典常谈", "tags": ["辞赋", "屈原弟子"]}, {"id": "person_42", "name": "伏生", "era": "西汉", "color": "#2E8B57", "description": "秦末汉初儒生，壁藏《尚书》", "source": "经典常谈", "tags": ["儒生", "尚书", "传承"]}, {"id": "person_43", "name": "苏秦", "era": "战国", "color": "#B8860B", "description": "战国纵横家，合纵派的代表人物", "source": "经典常谈", "tags": ["纵横家", "合纵"]}, {"id": "person_44", "name": "张仪", "era": "战国", "color": "#B8860B", "description": "战国纵横家，连横派的代表人物", "source": "经典常谈", "tags": ["纵横家", "连横"]}, {"id": "person_45", "name": "吕不韦", "era": "战国", "color": "#B8860B", "description": "秦相国，主持编撰《吕氏春秋》", "source": "经典常谈", "tags": ["秦相", "杂家"]}, {"id": "person_46", "name": "李斯", "era": "秦", "color": "#696969", "description": "秦朝丞相，推行郡县制、统一文字", "source": "经典常谈", "tags": ["秦相", "法家"]}, {"id": "person_47", "name": "秦始皇", "era": "秦", "color": "#696969", "description": "秦朝开国皇帝，统一六国", "source": "经典常谈", "tags": ["皇帝", "秦", "统一"]}, {"id": "person_48", "name": "阮籍", "era": "魏晋", "color": "#48D1CC", "description": "魏晋诗人，'竹林七贤'之一", "source": "经典常谈", "tags": ["诗人", "竹林七贤", "魏晋"]}, {"id": "person_49", "name": "谢灵运", "era": "南朝", "color": "#00CED1", "description": "南朝诗人，山水诗派的开创者", "source": "经典常谈", "tags": ["诗人", "山水诗", "南朝"]}, {"id": "person_50", "name": "方苞", "era": "清", "color": "#8A2BE2", "description": "清代散文家，桐城派的开创者", "source": "经典常谈", "tags": ["散文", "桐城派", "清"]}, {"id": "person_51", "name": "姚鼐", "era": "清", "color": "#8A2BE2", "description": "清代散文家，桐城派集大成者", "source": "经典常谈", "tags": ["散文", "桐城派", "清"]}, {"id": "person_52", "name": "梁启超", "era": "近代", "color": "#708090", "description": "近代思想家，'新文体'的倡导者", "source": "经典常谈", "tags": ["思想家", "近代", "新文化"]}, {"id": "person_53", "name": "胡适", "era": "近代", "color": "#708090", "description": "近代学者，白话文运动的主要倡导者", "source": "经典常谈", "tags": ["学者", "白话文", "新文化"]}, {"id": "person_54", "name": "司马迁", "era": "西汉", "color": "#2E8B57", "description": "史学家，著《史记》，创立纪传体", "source": "经典常谈", "tags": ["史学家", "史记", "纪传体"]}, {"id": "person_55", "name": "班固", "era": "东汉", "color": "#3CB371", "description": "史学家，著《汉书》", "source": "经典常谈", "tags": ["史学家", "汉书"]}, {"id": "person_56", "name": "朱熹", "era": "南宋", "color": "#FF7F50", "description": "理学家，宋明理学的代表人物", "source": "经典常谈", "tags": ["理学家", "宋明理学"]}, {"id": "person_57", "name": "程颢", "era": "北宋", "color": "#FFA500", "description": "理学家，宋明理学的奠基人之一", "source": "经典常谈", "tags": ["理学家", "宋明理学"]}, {"id": "person_58", "name": "程颐", "era": "北宋", "color": "#FFA500", "description": "理学家，程颢之弟", "source": "经典常谈", "tags": ["理学家", "宋明理学"]}, {"id": "person_59", "name": "欧阳修", "era": "北宋", "color": "#FFA500", "description": "文学家，唐宋八大家之一", "source": "经典常谈", "tags": ["文学家", "北宋", "唐宋八大家"]}, {"id": "person_60", "name": "李白", "era": "唐", "color": "#DC143C", "description": "诗人，'诗仙'", "source": "经典常谈", "tags": ["诗人", "唐", "诗仙"]}, {"id": "person_61", "name": "杜甫", "era": "唐", "color": "#DC143C", "description": "诗人，'诗圣'", "source": "经典常谈", "tags": ["诗人", "唐", "诗圣"]}, {"id": "person_62", "name": "白居易", "era": "唐", "color": "#DC143C", "description": "诗人，新乐府运动倡导者", "source": "经典常谈", "tags": ["诗人", "唐", "新乐府"]}, {"id": "person_63", "name": "李商隐", "era": "唐", "color": "#DC143C", "description": "诗人，晚唐诗人的代表", "source": "经典常谈", "tags": ["诗人", "唐", "晚唐"]}, {"id": "person_64", "name": "杜牧", "era": "唐", "color": "#DC143C", "description": "诗人，与李商隐并称'小李杜'", "source": "经典常谈", "tags": ["诗人", "唐", "晚唐"]}, {"id": "person_65", "name": "曾国藩", "era": "清", "color": "#8A2BE2", "description": "政治家、军事家，中兴桐城派", "source": "经典常谈", "tags": ["政治家", "清", "桐城派"]}, {"id": "person_66", "name": "孔子", "era": "春秋", "color": "#DAA520", "description": "儒家学派创始人", "source": "经典常谈", "tags": ["思想家", "儒家", "春秋"]}, {"id": "person_67", "name": "孟子", "era": "战国", "color": "#B8860B", "description": "儒家亚圣，继承并发展孔子学说", "source": "经典常谈", "tags": ["思想家", "儒家", "战国"]}, {"id": "person_68", "name": "荀子", "era": "战国", "color": "#B8860B", "description": "儒家思想家，提出性恶论", "source": "经典常谈", "tags": ["思想家", "儒家", "战国"]}, {"id": "person_69", "name": "老子", "era": "春秋", "color": "#DAA520", "description": "道家学派创始人", "source": "经典常谈", "tags": ["思想家", "道家", "春秋"]}, {"id": "person_70", "name": "庄子", "era": "战国", "color": "#B8860B", "description": "道家代表人物", "source": "经典常谈", "tags": ["思想家", "道家", "战国"]}, {"id": "person_71", "name": "韩非子", "era": "战国", "color": "#B8860B", "description": "法家集大成者", "source": "经典常谈", "tags": ["思想家", "法家", "战国"]}, {"id": "person_72", "name": "苏轼", "era": "北宋", "color": "#FFA500", "description": "文学家，书画家", "source": "经典常谈", "tags": ["文学家", "北宋", "诗词"]}, {"id": "person_73", "name": "黄庭坚", "era": "北宋", "color": "#FFA500", "description": "诗人，江西诗派开创者", "source": "经典常谈", "tags": ["诗人", "北宋", "江西诗派"]}, {"id": "person_74", "name": "安迪", "era": "现代", "color": "#4682B4", "description": "《凶火》主人公之一，拥有遥控他人意志的超能力", "source": "凶火", "tags": ["主人公", "超能力"]}, {"id": "person_75", "name": "薇姬", "era": "现代", "color": "#4682B4", "description": "安迪的妻子，拥有感知心灵的异能", "source": "凶火", "tags": ["超能力", "受害者"]}, {"id": "person_76", "name": "查莉", "era": "现代", "color": "#4682B4", "description": "安迪和薇姬的女儿，拥有点燃物体的可怕能力", "source": "凶火", "tags": ["超能力", "核心人物"]}, {"id": "person_77", "name": "雨鸟", "era": "现代", "color": "#4682B4", "description": "'商店'组织的特工，假扮护工接近查莉", "source": "凶火", "tags": ["反派", "商店特工"]}, {"id": "person_78", "name": "萨提亚", "era": "现代", "color": "#4682B4", "description": "Virginia Satir，美国心理治疗师，家庭治疗创始人，萨提亚模式创立者", "source": "萨提亚深层沟通力", "tags": ["心理学家", "家庭治疗", "萨提亚模式"]}, {"id": "person_79", "name": "秦恬", "era": "现代", "color": "#4682B4", "description": "《战起1938》女主角，来自21世纪的宅女，意外穿越到二战时期的德国", "source": "战起1938", "tags": ["主人公", "穿越者", "二战"]}, {"id": "person_80", "name": "奥古斯汀·冯·卡尔曼", "era": "现代", "color": "#4682B4", "description": "《战起1938》人物，德国军官，外表俊美，实则灵魂是中国野战军军官罗桐", "source": "战起1938", "tags": ["军官", "穿越者", "二战"]}, {"id": "person_81", "name": "海因茨上尉", "era": "现代", "color": "#4682B4", "description": "《战起1938》人物，性格古怪，与秦恬、奥古斯汀在战争中命运交织", "source": "战起1938", "tags": ["军官", "二战"]}, {"id": "person_82", "name": "亚瑟/牛虻", "era": "近代", "color": "#708090", "description": "《牛虻》主人公，本名亚瑟·勃尔顿，后成为革命者'牛虻'", "source": "牛虻", "tags": ["主人公", "革命者", "意大利"]}, {"id": "person_83", "name": "蒙泰尼里", "era": "近代", "color": "#708090", "description": "《牛虻》人物，天主教神父，后成为红衣主教，实为亚瑟的生父", "source": "牛虻", "tags": ["神父", "生父", "意大利"]}, {"id": "person_84", "name": "琼玛", "era": "近代", "color": "#708090", "description": "《牛虻》人物，勇敢坚定的革命女性，亚瑟的挚爱", "source": "牛虻", "tags": ["革命者", "女友", "意大利"]}, {"id": "person_85", "name": "波拉", "era": "近代", "color": "#708090", "description": "《牛虻》人物，青年意大利党成员，曾被亚瑟无意间出卖", "source": "牛虻", "tags": ["革命者", "同志", "意大利"]}, {"id": "person_86", "name": "卡尔狄神父", "era": "近代", "color": "#708090", "description": "《牛虻》人物，天主教神父，欺骗亚瑟导致其出卖同志", "source": "牛虻", "tags": ["神父", "反派", "意大利"]}, {"id": "person_87", "name": "伏尼契", "era": "近代", "color": "#708090", "description": "艾捷尔·丽莲·伏尼契，爱尔兰女作家，《牛虻》作者", "source": "牛虻", "tags": ["作者", "爱尔兰", "作家"]}, {"id": "person_88", "name": "韩丁", "era": "近代", "color": "#708090", "description": "伏尼契的孙子，受《西行漫记》影响来到延安，写成《翻身》", "source": "牛虻", "tags": ["伏尼契后人", "作家", "中国"]}, {"id": "person_89", "name": "寒春", "era": "近代", "color": "#708090", "description": "伏尼契的孙女，美国科学家，参与原子弹研制，后在中国从事农业科技", "source": "牛虻", "tags": ["伏尼契后人", "科学家", "中国"]}, {"id": "person_90", "name": "罗桐", "era": "现代", "color": "#4682B4", "description": "奥古斯汀的真实身份，中国野战军军官，灵魂穿越到德国军官体内", "source": "战起1938", "tags": ["中国军官", "穿越者", "二战"]}, {"id": "person_aositeluofu", "name": "奥斯特洛夫斯基", "era": "现代", "color": "#4682B4", "description": "尼古拉·阿列克谢耶维奇·奥斯特洛夫斯基（1904-1936），苏联著名无产阶级作家，《钢铁是怎样炼成的》作者", "source": "钢铁是怎样炼成的", "tags": ["作家", "苏联", "革命"]}, {"id": "person_baoer", "name": "保尔·柯察金", "era": "现代", "color": "#4682B4", "description": "《钢铁是怎样炼成的》主人公，具有坚定革命信念、顽强意志的无产阶级战士", "source": "钢铁是怎样炼成的", "tags": ["主人公", "革命战士", "苏联"]}, {"id": "person_dongniya", "name": "冬妮娅", "era": "现代", "color": "#4682B4", "description": "《钢铁是怎样炼成的》中的人物，出身资产阶级家庭，与保尔有过恋情", "source": "钢铁是怎样炼成的", "tags": ["人物", "资产阶级", "恋情"]}, {"id": "person_zhufulai", "name": "朱赫来", "era": "现代", "color": "#4682B4", "description": "《钢铁是怎样炼成的》中的人物，布尔什维克党员，保尔革命道路上的引路人", "source": "钢铁是怎样炼成的", "tags": ["人物", "革命引路人", "布尔什维克"]}, {"id": "person_ludingyi", "name": "陆定一", "era": "近代", "color": "#708090", "description": "伟大的共产主义战士，杰出的无产阶级革命家，曾负责党的宣传文教工作", "source": "血泪斑斑旧协和", "tags": ["革命家", "宣传", "共产党"]}, {"id": "person_liuruiheng", "name": "刘瑞恒", "era": "近代", "color": "#708090", "description": "曾任协和医院院长，后任国民党卫生部长，美帝国主义培养的医生", "source": "血泪斑斑旧协和", "tags": ["医生", "协和", "卫生部长"]}, {"id": "person_douweilian", "name": "窦维廉", "era": "近代", "color": "#708090", "description": "美帝国主义分子，协和医学院教授，进行人体实验", "source": "血泪斑斑旧协和", "tags": ["美帝", "教授", "实验"]}, {"id": "person_shidiwenseng", "name": "史蒂文森", "era": "近代", "color": "#708090", "description": "美帝国主义分子，协和解剖学系副教授，曾处理孙中山遗体防腐", "source": "血泪斑斑旧协和", "tags": ["美帝", "解剖", "孙中山"]}, {"id": "person_chenbaisheng", "name": "陈柏生", "era": "现代", "color": "#4682B4", "description": "人民日报记者，1926年出生于安徽安庆，毕业于清华大学中文系，写过《新旧协和》", "source": "血泪斑斑旧协和", "tags": ["记者", "人民日报", "清华"]}, {"id": "person_liushihao", "name": "刘士豪", "era": "近代", "color": "#708090", "description": "中国著名内分泌学家，在钙磷代谢与骨代谢疾病研究方面取得卓越成就", "source": "血泪斑斑旧协和", "tags": ["内分泌", "科学家", "协和"]}, {"id": "person_sunzhongshan_quan", "name": "孙中山（逝世）", "era": "近代", "color": "#708090", "description": "中国民主革命先驱，1925年逝世，遗体由协和进行防腐处理，肝脏被偷制成标本", "source": "血泪斑斑旧协和", "tags": ["革命先驱", "逝世", "协和"]}, {"id": "person_langjinghe", "name": "郎景和", "era": "现代", "color": "#4682B4", "description": "1940年生，中国工程院院士，北京协和医院妇产科主任医师、教授，被誉为'中国妇产科内镜之父'", "source": "一个医生的故事", "tags": ["院士", "妇产科", "协和"]}, {"id": "person_tanxianjie", "name": "谭先杰", "era": "现代", "color": "#4682B4", "description": "北京协和医院妇产科肿瘤医生，郎景和的学生，著有《致母亲：一个协和医生的故事》", "source": "致母亲：一个协和医生的故事", "tags": ["医生", "妇产科", "协和"]}, {"id": "person_changqing", "name": "常青", "era": "现代", "color": "#4682B4", "description": "医学博士，毕业于中国协和医科大学八年制医学系，在美国做博士后研究，《协和医事》作者", "source": "协和医事", "tags": ["作者", "医学博士", "协和"]}, {"id": "person_budasheng", "name": "步达生", "era": "近代", "color": "#708090", "description": "加拿大古人类学家，1926年来到协和解剖系，与中国合作者一起发现了'北京人'化石", "source": "协和医事", "tags": ["科学家", "古人类学", "北京人"]}, {"id": "person_wenyichuan", "name": "闻一传", "era": "近代", "color": "#708090", "description": "闻一多的弟弟，1926-1927年在协和解剖系任教，毕业于芝加哥大学，胚胎学家", "source": "协和医事", "tags": ["科学家", "胚胎学", "闻一多之弟"]}, {"id": "person_wuxian", "name": "吴宪", "era": "近代", "color": "#708090", "description": "20世纪上半叶中国最伟大的科学家之一，发明了Folin-Wu血液分析法测定血糖", "source": "协和医事", "tags": ["科学家", "生物化学", "诺贝尔级"]}, {"id": "person_chenkehui", "name": "陈克恢", "era": "近代", "color": "#708090", "description": "协和医学院药理系助教，从麻黄中分离出左旋麻黄碱，完成世界著名的麻黄素研究", "source": "协和医事", "tags": ["科学家", "药理学", "麻黄素"]}, {"id": "person_songhongzhao", "name": "宋鸿钊", "era": "现代", "color": "#4682B4", "description": "北京协和医学院著名妇产科专家，'文革'期间被批斗但仍坚守医者职责", "source": "协和医事", "tags": ["妇产科", "专家", "协和精神"]}, {"id": "person_lanansheng", "name": "兰安生", "era": "近代", "color": "#708090", "description": "美国医学家、公共卫生专家，1921年来华，在协和讲授公共卫生学，提出'60%有效的本土运动'名言", "source": "协和医事", "tags": ["公共卫生", "美帝", "名言"]}, {"id": "person_chenzhiqian", "name": "陈志潜", "era": "现代", "color": "#4682B4", "description": "协和毕业后骑毛驴到定县做农村卫生调查，为中国农村公共卫生事业奠定基础", "source": "协和医事", "tags": ["公共卫生", "农村", "定县"]}, {"id": "person_linkesheng", "name": "林可胜", "era": "近代", "color": "#708090", "description": "1921年任全国医学协会会长，呼吁关注农村医疗需要", "source": "协和医事", "tags": ["医学协会", "会长", "公共卫生"]}, {"id": "person_humei", "name": "胡美", "era": "近代", "color": "#708090", "description": "湘雅医学院院长，1921年来协和参加开幕典礼，描述中国医疗危机数字", "source": "协和医事", "tags": ["医学教育", "湘雅", "院长"]}, {"id": "person_lizongen", "name": "李宗恩", "era": "现代", "color": "#4682B4", "description": "1941年任协和代理校长，1951年1月20日代表协和发报'本院收归国有'", "source": "协和医事", "tags": ["协和", "代理校长", "收归国有"]}, {"id": "person_wuyingkai", "name": "吴英恺", "era": "现代", "color": "#4682B4", "description": "著名外科专家，提出好医生标准：公、勤、严、廉，创办安贞医院", "source": "协和医事", "tags": ["外科", "专家", "医院管理"]}, {"id": "person_91", "name": "纪昀/纪晓岚", "era": "清代", "color": "#8A2BE2", "description": "清代政治家、文学家、学者，字晓岚，《四库全书》总纂官，《阅微草堂笔记》作者", "source": "阅微草堂笔记", "tags": ["清代", "文学家", "官员", "四库全书"]}, {"id": "person_92", "name": "余宗其", "era": "现代", "color": "#4682B4", "description": "中南财经政法大学教授，《法说聊斋志异》作者", "source": "法说聊斋志异", "tags": ["学者", "法学", "文学研究"]}, {"id": "person_93", "name": "汪文宣", "era": "现代", "color": "#4682B4", "description": "《寒夜》主人公，善良懦弱的知识分子，在贫病交加中孤独死去", "source": "寒夜", "tags": ["主人公", "知识分子", "悲剧"]}, {"id": "person_94", "name": "曾树生", "era": "现代", "color": "#4682B4", "description": "《寒夜》人物，汪文宣之妻，追求自由与自我价值", "source": "寒夜", "tags": ["女性", "追求自由", "矛盾"]}, {"id": "person_95", "name": "巴金", "era": "现代", "color": "#4682B4", "description": "中国现代著名作家，《寒夜》《激流三部曲》作者", "source": "寒夜", "tags": ["作家", "现代文学", "四川"]}, {"id": "person_96", "name": "哈洛韦尔", "era": "现代", "color": "#4682B4", "description": "爱德华·哈洛韦尔，哈佛医学院教授，注意力缺失领域著名专家，《分心不是我的错》作者之一", "source": "分心不是我的错", "tags": ["心理学家", "哈佛", "ADHD专家"]}, {"id": "person_97", "name": "瑞提", "era": "现代", "color": "#4682B4", "description": "约翰·瑞提，哈佛医学院精神科助理教授，《分心不是我的错》作者之一", "source": "分心不是我的错", "tags": ["精神科", "哈佛", "ADHD专家"]}, {"id": "person_98", "name": "拉比", "era": "现代", "color": "#4682B4", "description": "国家二级心理咨询师，中级心理治疗师，《聪明却坐不住的孩子》作者", "source": "聪明却坐不住的孩子", "tags": ["心理咨询师", "儿童心理", "多动症专家"]}, {"id": "person_99", "name": "巴克利", "era": "现代", "color": "#4682B4", "description": "多动症领域权威专家，《聪明却坐不住的孩子》中家庭教育八步法来源", "source": "聪明却坐不住的孩子", "tags": ["多动症专家", "学者"]}, {"id": "person_100", "name": "袁殊", "era": "近代", "color": "#708090", "description": "中共秘密特工，身兼军统、中统、日伪、青帮多重身份，为革命做出重大贡献", "source": "我的父亲袁殊", "tags": ["特工", "中共", "近代史", "秘密工作"]}, {"id": "person_101", "name": "潘汉年", "era": "近代", "color": "#708090", "description": "中共情报工作负责人，袁殊的直接上级", "source": "我的父亲袁殊", "tags": ["特工", "中共", "情报"]}, {"id": "person_102", "name": "岩井", "era": "近代", "color": "#708090", "description": "日本外务省特工头目，袁殊的日本情报来源渠道", "source": "我的父亲袁殊", "tags": ["日本", "特工"]}, {"id": "person_103", "name": "王子春", "era": "近代", "color": "#708090", "description": "袁殊的上线联系人，负责收取袁殊的党费", "source": "我的父亲袁殊", "tags": ["中共", "联络人"]}, {"id": "person_104", "name": "王天木", "era": "近代", "color": "#708090", "description": "军统特工，后被怀疑而怒而投敌", "source": "我的父亲袁殊", "tags": ["军统", "叛变"]}, {"id": "person_105", "name": "李士群", "era": "近代", "color": "#708090", "description": "汪伪特工总部76号头目", "source": "我的父亲袁殊", "tags": ["汉奸", "76号"]}, {"id": "person_106", "name": "丁默村", "era": "近代", "color": "#708090", "description": "汪伪特工总部76号头目", "source": "我的父亲袁殊", "tags": ["汉奸", "76号"]}, {"id": "person_107", "name": "杜月笙", "era": "近代", "color": "#708090", "description": "上海滩流氓大亨，兼具黑帮领袖与社会名流身份", "source": "大流氓杜月笙", "tags": ["流氓", "上海滩", "青帮", "民国"]}, {"id": "person_108", "name": "戴笠", "era": "近代", "color": "#708090", "description": "军统负责人，与杜月笙有合作关系", "source": "大流氓杜月笙", "tags": ["军统", "特工", "民国"]}, {"id": "person_109", "name": "白嘉轩", "era": "现代", "color": "#4682B4", "description": "《白鹿原》主人公，白鹿家族族长，坚守传统道德", "source": "白鹿原", "tags": ["主人公", "族长", "传统"]}, {"id": "person_110", "name": "鹿子霖", "era": "现代", "color": "#4682B4", "description": "《白鹿原》人物，白嘉轩的对手，精于算计", "source": "白鹿原", "tags": ["人物", "投机", "反派"]}, {"id": "person_111", "name": "白灵", "era": "现代", "color": "#4682B4", "description": "《白鹿原》人物，白嘉轩之女，投身革命的进步女性", "source": "白鹿原", "tags": ["女性", "革命者", "悲剧"]}, {"id": "person_112", "name": "鹿兆鹏", "era": "现代", "color": "#4682B4", "description": "《白鹿原》人物，鹿子霖之子，坚定的共产党人", "source": "白鹿原", "tags": ["革命者", "共产党", "地下党"]}, {"id": "person_113", "name": "陈忠实", "era": "现代", "color": "#4682B4", "description": "《白鹿原》作者，当代著名作家", "source": "白鹿原", "tags": ["作家", "茅盾文学奖", "陕西"]}, {"id": "person_114", "name": "田小娥", "era": "现代", "color": "#4682B4", "description": "《白鹿原》人物，悲剧女性形象", "source": "白鹿原", "tags": ["女性", "悲剧", "反抗"]}, {"id": "person_115", "name": "周志明", "era": "现代", "color": "#4682B4", "description": "《便衣警察》主人公，年轻的公安民警", "source": "便衣警察", "tags": ["主人公", "警察", "正义"]}, {"id": "person_116", "name": "海岩", "era": "现代", "color": "#4682B4", "description": "著名作家，《便衣警察》《河流如血》《玉观音》等作者", "source": "便衣警察", "tags": ["作家", "公安文学", "悬疑"]}, {"id": "person_117", "name": "陆保良", "era": "现代", "color": "#4682B4", "description": "《河流如血》主人公，在亲情与道义间挣扎成长", "source": "河流如血", "tags": ["主人公", "成长", "警察家庭"]}, {"id": "person_118", "name": "陆为国", "era": "现代", "color": "#4682B4", "description": "《河流如血》人物，陆保良之父，刚正不阿的老警察", "source": "河流如血", "tags": ["警察", "父亲", "固执"]}, {"id": "person_119", "name": "法齐娅·库菲", "era": "现代", "color": "#4682B4", "description": "阿富汗唯一女性国会议长，《我不要你死于一事无成》作者", "source": "我不要你死于一事无成", "tags": ["政治家", "阿富汗", "女性领袖"]}, {"id": "person_120", "name": "刘禹锡", "era": "唐代", "color": "#DC143C", "description": "唐代诗人，字梦得，与柳宗元并称刘柳", "source": "刘禹锡传", "tags": ["诗人", "唐代", "刘柳"]}, {"id": "person_121", "name": "柳宗元", "era": "唐代", "color": "#DC143C", "description": "唐代文学家，与刘禹锡为挚友", "source": "刘禹锡传", "tags": ["文学家", "唐代", "韩柳"]}, {"id": "person_122", "name": "白居易", "era": "唐代", "color": "#DC143C", "description": "唐代诗人，与刘禹锡并称刘白", "source": "刘禹锡传", "tags": ["诗人", "唐代", "新乐府"]}, {"id": "person_123", "name": "胡狼拜月", "era": "现代", "color": "#4682B4", "description": "《刘禹锡传》作者", "source": "刘禹锡传", "tags": ["作家", "传记"]}, {"id": "person_124", "name": "李敖", "era": "现代", "color": "#4682B4", "description": "台湾著名学者、作家，以笔为剑的批判者", "source": "李敖自传", "tags": ["学者", "作家", "台湾", "批判"]}, {"id": "person_125", "name": "梅吉", "era": "现代", "color": "#4682B4", "description": "《荆棘鸟》女主人公，追寻禁忌之爱的女性", "source": "荆棘鸟", "tags": ["主人公", "女性", "爱情"]}, {"id": "person_126", "name": "拉尔夫", "era": "现代", "color": "#4682B4", "description": "《荆棘鸟》人物，天主教神父，后升任红衣主教", "source": "荆棘鸟", "tags": ["神父", "主教", "禁忌之爱"]}, {"id": "person_127", "name": "考琳·麦卡洛", "era": "现代", "color": "#4682B4", "description": "澳大利亚作家，《荆棘鸟》作者", "source": "荆棘鸟", "tags": ["作家", "澳大利亚"]}, {"id": "person_128", "name": "菲奥娜", "era": "现代", "color": "#4682B4", "description": "《荆棘鸟》人物，克利里家族的母亲", "source": "荆棘鸟", "tags": ["女性", "母亲", "隐忍"]}, {"id": "person_129", "name": "冯啸辰", "era": "现代", "color": "#4682B4", "description": "《大国重工》主人公，穿越者，用专业知识推动中国工业发展", "source": "大国重工", "tags": ["主人公", "穿越", "工业"]}, {"id": "person_130", "name": "齐橙", "era": "现代", "color": "#4682B4", "description": "《大国重工》作者，中国社科院工业经济研究所博士", "source": "大国重工", "tags": ["作家", "工业经济", "博士"]}, {"id": "person_131", "name": "吴石", "era": "近代", "color": "#708090", "description": "潜伏将军，国民党中将，秘密党员，为解放战争做出重大贡献", "source": "冷月无声", "tags": ["将军", "潜伏者", "共产党", "烈士"]}, {"id": "person_132", "name": "陈碧莲", "era": "近代", "color": "#708090", "description": "吴石之妻", "source": "冷月无声", "tags": ["女性", "妻子"]}, {"id": "person_133", "name": "刘士欣", "era": "现代", "color": "#4682B4", "description": "《好看的中国历史故事》作者", "source": "好看的中国历史故事", "tags": ["作家", "历史"]}, {"id": "person_134", "name": "汉武帝", "era": "西汉", "color": "#2E8B57", "description": "西汉皇帝，开疆拓土", "source": "好看的中国历史故事", "tags": ["皇帝", "西汉", "汉武"]}, {"id": "person_135", "name": "武则天", "era": "唐", "color": "#DC143C", "description": "中国历史上唯一的女皇帝", "source": "好看的中国历史故事", "tags": ["皇帝", "女皇", "唐朝"]}, {"id": "person_136", "name": "岳飞", "era": "南宋", "color": "#FF7F50", "description": "南宋抗金名将，精忠报国", "source": "好看的中国历史故事", "tags": ["将领", "南宋", "抗金", "忠义"]}, {"id": "person_137", "name": "郑和", "era": "明", "color": "#4169E1", "description": "明代航海家，七下西洋", "source": "好看的中国历史故事", "tags": ["航海家", "明朝", "外交"]}, {"id": "person_zhufeng", "name": "朱枫", "era": "近代", "color": "#708090", "description": "朱枫（1905-1950），原名朱谌之，浙江镇海富商之女，后成为中共隐蔽战线情报员，1950年在台湾就义。", "source": "朱枫传", "tags": ["情报员", "革命烈士", "隐蔽战线", "台湾"]}, {"id": "person_zhuxiaoguang", "name": "朱晓光", "era": "近代", "color": "#708090", "description": "朱枫的革命伴侣，新知书店负责人。", "source": "朱枫传", "tags": ["革命者", "情报员", "朱枫丈夫"]}, {"id": "person_chenchouqing", "name": "陈绶卿", "era": "近代", "color": "#708090", "description": "朱枫的第一任丈夫，病逝后朱枫投身革命。", "source": "朱枫传", "tags": ["朱枫丈夫", "已故"]}, {"id": "person_wushishi", "name": "吴石", "era": "近代", "color": "#708090", "description": "国民党国防部参谋次长，秘密为中共提供情报，朱枫的接头人。", "source": "朱枫传", "tags": ["将军", "国民党", "秘密党员", "情报"]}, {"id": "person_caixiaoqian", "name": "蔡孝乾", "era": "近代", "color": "#708090", "description": "台湾省工作委员会书记，被捕后叛变，导致朱枫暴露。", "source": "朱枫传", "tags": ["叛徒", "台湾", "情报系统"]}, {"id": "person_fengyitong", "name": "冯亦同", "era": "当代", "color": "#5F9EA0", "description": "南京作家、诗人，《朱枫传》作者。", "source": "朱枫传", "tags": ["作家", "诗人", "朱枫传作者"]}, {"id": "person_shenanna", "name": "沈安娜", "era": "近代", "color": "#708090", "description": "被誉为'按住蒋介石脉搏的速记员'，潜伏国民党核心机关14年的中共情报员。", "source": "丹心素裹", "tags": ["情报员", "隐蔽战线", "速记员", "革命"]}, {"id": "person_huamingzhi", "name": "华明之", "era": "近代", "color": "#708090", "description": "沈安娜的丈夫，革命伴侣，也是情报员。", "source": "丹心素裹", "tags": ["情报员", "沈安娜丈夫", "革命伴侣"]}, {"id": "person_zhouenlai", "name": "周恩来", "era": "近代", "color": "#708090", "description": "中共重要领导人，派遣沈安娜潜伏。", "source": "丹心素裹", "tags": ["中共", "领导人", "隐蔽战线"]}, {"id": "person_dengyingchao", "name": "邓颖超", "era": "近代", "color": "#708090", "description": "周恩来夫人，对沈安娜有重要指导。", "source": "丹心素裹", "tags": ["中共", "妇女运动", "隐蔽战线"]}, {"id": "person_xuzhonghang", "name": "徐仲航", "era": "近代", "color": "#708090", "description": "沈安娜的直接领导人，1942年被捕。", "source": "丹心素裹", "tags": ["情报员", "领导", "被捕"]}, {"id": "person_wukefan", "name": "吴克坚", "era": "近代", "color": "#708090", "description": "情报工作领导人，派遣并指导沈安娜。", "source": "丹心素裹", "tags": ["情报员", "领导", "隐蔽战线"]}, {"id": "person_shuriuxin", "name": "舒曰信", "era": "近代", "color": "#708090", "description": "共产党员，沈安娜的思想启蒙者。", "source": "丹心素裹", "tags": ["共产党员", "思想启蒙"]}, {"id": "person_chenbilao", "name": "陈布雷", "era": "近代", "color": "#708090", "description": "蒋介石侍从室主任，沈安娜见证其死亡。", "source": "丹心素裹", "tags": ["国民党", "高官", "蒋介石幕僚"]}, {"id": "person_zhirujiahao", "name": "朱家骅", "era": "近代", "color": "#708090", "description": "国民党高官，沈安娜打入国民党的引荐人。", "source": "丹心素裹", "tags": ["国民党", "高官"]}, {"id": "person_zhangzhongfan", "name": "张仲实", "era": "近代", "color": "#708090", "description": "进步人士，影响了朱枫走上革命道路。", "source": "丹心素裹", "tags": ["进步人士", "革命启蒙"]}, {"id": "person_xiangsi", "name": "向斯", "era": "当代", "color": "#5F9EA0", "description": "故宫博物院研究员，《这里是故宫》主编。", "source": "这里是故宫", "tags": ["学者", "故宫", "作者"]}, {"id": "person_matthewdesmond", "name": "马修·德斯蒙德", "era": "当代", "color": "#5F9EA0", "description": "美国普林斯顿大学社会学教授，《制造贫困》作者。", "source": "制造贫困", "tags": ["学者", "社会学", "美国", "贫困研究"]}, {"id": "person_wangwan", "name": "王晚", "era": "当代", "color": "#5F9EA0", "description": "《跑外卖》作者，2024年失业后跑外卖的女骑手。", "source": "跑外卖", "tags": ["作者", "外卖骑手", "女性"]}, {"id": "person_zihe", "name": "子禾", "era": "当代", "color": "#5F9EA0", "description": "《异乡人》作者，十年北漂经历者。", "source": "异乡人", "tags": ["作者", "北漂", "非虚构"]}, {"id": "person_aleixie", "name": "阿列克谢", "era": "19世纪", "color": "#BC8F8F", "description": "《赌徒》主人公，从有理想的知识分子堕落为赌瘾奴隶。", "source": "赌徒", "tags": ["主人公", "俄国", "赌徒"]}, {"id": "person_bolinna", "name": "波琳娜", "era": "19世纪", "color": "#BC8F8F", "description": "《赌徒》人物，将军继女，阿列克谢暗恋对象。", "source": "赌徒", "tags": ["人物", "俄国", "爱情"]}, {"id": "person_zhufangleizhe", "name": "将军", "era": "19世纪", "color": "#BC8F8F", "description": "《赌徒》人物，没落贵族，波琳娜的继父。", "source": "赌徒", "tags": ["人物", "俄国", "贵族"]}, {"id": "person_degeleye", "name": "德·格里叶", "era": "19世纪", "color": "#BC8F8F", "description": "《赌徒》人物，法国高利贷者，觊觎波琳娜的嫁妆。", "source": "赌徒", "tags": ["人物", "俄国", "反派"]}, {"id": "person_nasigenka", "name": "娜斯坚卡", "era": "19世纪", "color": "#BC8F8F", "description": "《白夜》女主人公，在河边哭泣的少女，后来与爱人重逢。", "source": "白夜", "tags": ["人物", "俄国", "爱情"]}, {"id": "person_yinhuang", "name": "英惠", "era": "当代", "color": "#5F9EA0", "description": "《素食者》女主人公，因噩梦拒绝吃肉，象征性反抗父权暴力。", "source": "素食者", "tags": ["人物", "韩国", "女性", "主人公"]}, {"id": "person_renhuiai", "name": "仁惠", "era": "当代", "color": "#5F9EA0", "description": "《素食者》人物，英惠的姐姐，最终觉醒。", "source": "素食者", "tags": ["人物", "韩国", "女性", "姐姐"]}, {"id": "person_hanshuxin", "name": "韩江", "era": "当代", "color": "#5F9EA0", "description": "韩国作家，2024年获诺贝尔文学奖，《素食者》作者。", "source": "素食者", "tags": ["作家", "韩国", "诺贝尔"]}, {"id": "person_bazhaluo", "name": "巴扎罗夫", "era": "19世纪", "color": "#BC8F8F", "description": "《父与子》核心人物，平民知识分子，虚无主义者。", "source": "父与子", "tags": ["人物", "俄国", "虚无主义", "主人公"]}, {"id": "person_erqiaxi", "name": "阿尔卡季", "era": "19世纪", "color": "#BC8F8F", "description": "《父与子》人物，基尔萨诺夫家的大儿子，向往新思想。", "source": "父与子", "tags": ["人物", "俄国", "知识分子"]}, {"id": "person_nikola", "name": "尼古拉·基尔萨诺夫", "era": "19世纪", "color": "#BC8F8F", "description": "《父与子》人物，老一代贵族代表，阿尔卡季之父。", "source": "父与子", "tags": ["人物", "俄国", "贵族", "父亲"]}, {"id": "person_pafu", "name": "帕维尔·基尔萨诺夫", "era": "19世纪", "color": "#BC8F8F", "description": "《父与子》人物，尼古拉之弟，传统贵族的代表。", "source": "父与子", "tags": ["人物", "俄国", "贵族", "叔父"]}, {"id": "person_aojin", "name": "奥金佐娃", "era": "19世纪", "color": "#BC8F8F", "description": "《父与子》人物，美丽的贵族寡妇，巴扎罗夫爱上的人。", "source": "父与子", "tags": ["人物", "俄国", "贵族", "爱情"]}, {"id": "person_tuge", "name": "屠格涅夫", "era": "19世纪", "color": "#BC8F8F", "description": "俄国作家，《父与子》作者。", "source": "父与子", "tags": ["作家", "俄国", "文学"]}, {"id": "person_xisikeli", "name": "希斯克利夫", "era": "19世纪", "color": "#BC8F8F", "description": "《呼啸山庄》主人公，被收养的孤儿，复仇者。", "source": "呼啸山庄", "tags": ["人物", "英国", "主人公", "复仇"]}, {"id": "person_zhongting", "name": "凯瑟琳", "era": "19世纪", "color": "#BC8F8F", "description": "《呼啸山庄》女主人公，希斯克利夫的青梅竹马。", "source": "呼啸山庄", "tags": ["人物", "英国", "爱情"]}, {"id": "person_ailang", "name": "埃德加·林顿", "era": "19世纪", "color": "#BC8F8F", "description": "《呼啸山庄》人物，画眉田庄主人，凯瑟琳的丈夫。", "source": "呼啸山庄", "tags": ["人物", "英国", "绅士"]}, {"id": "person_xinde", "name": "辛德雷", "era": "19世纪", "color": "#BC8F8F", "description": "《呼啸山庄》人物，凯瑟琳之兄，虐待希斯克利夫。", "source": "呼啸山庄", "tags": ["人物", "英国", "反派", "兄长"]}, {"id": "person_hamudun", "name": "哈里顿", "era": "19世纪", "color": "#BC8F8F", "description": "《呼啸山庄》人物，辛德雷之子，最终与凯瑟琳走出仇恨。", "source": "呼啸山庄", "tags": ["人物", "英国", "新生代"]}, {"id": "person_xiaokaishen", "name": "小凯瑟琳", "era": "19世纪", "color": "#BC8F8F", "description": "《呼啸山庄》人物，凯瑟琳与林顿之女，象征希望。", "source": "呼啸山庄", "tags": ["人物", "英国", "新生代"]}, {"id": "person_yuesefu", "name": "约瑟夫", "era": "19世纪", "color": "#BC8F8F", "description": "《呼啸山庄》人物，呼啸山庄的老仆人，虚伪的道德卫道士。", "source": "呼啸山庄", "tags": ["人物", "英国", "反派", "仆人"]}, {"id": "person_weite", "name": "维特", "era": "18世纪", "color": "#D2B48C", "description": "《少年维特之烦恼》主人公，追求个性解放的青年，最终在绝望中自杀。", "source": "少年维特之烦恼", "tags": ["人物", "德国", "主人公", "理想主义"]}, {"id": "person_luti", "name": "绿蒂", "era": "18世纪", "color": "#D2B48C", "description": "《少年维特之烦恼》女主人公，维特一见钟情的少女，已订婚。", "source": "少年维特之烦恼", "tags": ["人物", "德国", "爱情"]}, {"id": "person_geerte", "name": "歌德", "era": "18-19世纪", "color": "#CD853F", "description": "约翰·沃尔夫冈·冯·歌德，德国文豪，《少年维特之烦恼》《浮士德》作者。", "source": "少年维特之烦恼", "tags": ["作家", "德国", "文豪"]}, {"id": "person_hanmute", "name": "哈姆雷特", "era": "16-17世纪", "color": "#DAA520", "description": "《哈姆雷特》主人公，丹麦王子，'生存还是毁灭'的经典独白者。", "source": "莎士比亚悲喜剧", "tags": ["人物", "英国", "王子", "主人公"]}, {"id": "person_kelaoday乌斯", "name": "克劳狄斯", "era": "16-17世纪", "color": "#DAA520", "description": "《哈姆雷特》人物，丹麦国王，哈姆雷特的叔父，弑兄篡位者。", "source": "莎士比亚悲喜剧", "tags": ["人物", "英国", "反派", "国王"]}, {"id": "person_aofei", "name": "奥菲莉亚", "era": "16-17世纪", "color": "#DAA520", "description": "《哈姆雷特》人物，哈姆雷特的爱人，悲剧性人物。", "source": "莎士比亚悲喜剧", "tags": ["人物", "英国", "爱情"]}, {"id": "person_aosaiduo", "name": "奥赛罗", "era": "16-17世纪", "color": "#DAA520", "description": "《奥赛罗》主人公，摩尔人将军，因嫉妒杀死妻子。", "source": "莎士比亚悲喜剧", "tags": ["人物", "英国", "主人公", "将军"]}, {"id": "person_taisi", "name": "苔丝狄蒙娜", "era": "16-17世纪", "color": "#DAA520", "description": "《奥赛罗》女主人公，奥赛罗的妻子，被伊阿古陷害。", "source": "莎士比亚悲喜剧", "tags": ["人物", "英国", "爱情", "悲剧"]}, {"id": "person_yiyagu", "name": "伊阿古", "era": "16-17世纪", "color": "#DAA520", "description": "《奥赛罗》人物，奥赛罗的旗官，阴谋家。", "source": "莎士比亚悲喜剧", "tags": ["人物", "英国", "反派", "阴谋家"]}, {"id": "person_liere", "name": "李尔王", "era": "16-17世纪", "color": "#DAA520", "description": "《李尔王》主人公，分封国土后被女儿背叛的国王。", "source": "莎士比亚悲喜剧", "tags": ["人物", "英国", "主人公", "国王"]}, {"id": "person_kaodil", "name": "考狄利娅", "era": "16-17世纪", "color": "#DAA520", "description": "《李尔王》人物，李尔王的小女儿，真诚的象征。", "source": "莎士比亚悲喜剧", "tags": ["人物", "英国", "善良", "悲剧"]}, {"id": "person_maikebai", "name": "麦克白", "era": "16-17世纪", "color": "#DAA520", "description": "《麦克白》主人公，苏格兰将军，在野心驱使下弑君。", "source": "莎士比亚悲喜剧", "tags": ["人物", "英国", "主人公", "悲剧英雄"]}, {"id": "person_maikebaifuren", "name": "麦克白夫人", "era": "16-17世纪", "color": "#DAA520", "description": "《麦克白》人物，麦克白之妻，推动丈夫弑君。", "source": "莎士比亚悲喜剧", "tags": ["人物", "英国", "女性", "悲剧"]}, {"id": "person_pushe", "name": "鲍西亚", "era": "16-17世纪", "color": "#DAA520", "description": "《威尼斯商人》女主人公，聪明机智，智胜夏洛克。", "source": "莎士比亚悲喜剧", "tags": ["人物", "英国", "女性", "智慧"]}, {"id": "person_xialiakun", "name": "夏洛克", "era": "16-17世纪", "color": "#DAA520", "description": "《威尼斯商人》人物，犹太商人，高利贷者。", "source": "莎士比亚悲喜剧", "tags": ["人物", "英国", "反派", "犹太人"]}, {"id": "person_luoselin", "name": "罗瑟琳", "era": "16-17世纪", "color": "#DAA520", "description": "《皆大欢喜》女主人公，女扮男装，在森林中成全爱情。", "source": "莎士比亚悲喜剧", "tags": ["人物", "英国", "女性", "喜剧"]}, {"id": "person_weiao", "name": "薇奥拉", "era": "16-17世纪", "color": "#DAA520", "description": "《第十二夜》女主人公，女扮男装侍奉公爵。", "source": "莎士比亚悲喜剧", "tags": ["人物", "英国", "女性", "喜剧"]}, {"id": "person_jiaboermaite", "name": "加博尔·马特", "era": "当代", "color": "#5F9EA0", "description": "成瘾心理学专家，《空洞的心》作者。", "source": "空洞的心", "tags": ["心理学家", "成瘾", "作者"]}, {"id": "person_damasio", "name": "安东尼奥·达马西奥", "era": "当代", "color": "#5F9EA0", "description": "神经学家，对成瘾与情感有深入研究。", "source": "空洞的心", "tags": ["神经学家", "科学家"]}, {"id": "person_kelisi", "name": "克里斯·阿纳德", "era": "当代", "color": "#5F9EA0", "description": "美国社会学家，《美国底层》作者。", "source": "美国底层", "tags": ["社会学家", "美国", "作者"]}, {"id": "person_shalie", "name": "谢莉", "era": "当代", "color": "#5F9EA0", "description": "《美国底层》中的人物，底层民众代表，信仰上帝作为精神寄托。", "source": "美国底层", "tags": ["人物", "美国", "底层"]}];
+        const linksData = [{"id": "person_hanwendi_event_lvbujieyichaoyao", "source": "person_hanwendi", "target": "event_lvbujieyichaoyao", "type": "典故关联", "description": "汉文帝是'履不借以视朝'典故的主角"}, {"id": "person_liuzhi_person_marong", "source": "person_liuzhi", "target": "person_marong", "type": "师徒", "description": "卢植是马融的弟子"}, {"id": "person_liubei_person_liuzhi", "source": "person_liubei", "target": "person_liuzhi", "type": "师徒", "description": "刘备曾师从卢植学习"}, {"id": "person_liuzhi_person_dongzhuo", "source": "person_liuzhi", "target": "person_dongzhuo", "type": "对抗", "description": "卢植公开反对董卓废帝"}, {"id": "person_dongzhuo_person_liuzhi", "source": "person_dongzhuo", "target": "person_liuzhi", "type": "忌惮", "description": "董卓因忌惮卢植名望而不敢杀他"}, {"id": "person_caocao_person_liuzhi", "source": "person_caocao", "target": "person_liuzhi", "type": "评价", "description": "曹操高度评价卢植：名著海内，学为儒宗，士之楷模，国之桢干"}, {"id": "person_marong_event_marongdinglishiyan", "source": "person_marong", "target": "event_marongdinglishiyan", "type": "关联事件", "description": "马融是定力实验的实施者"}, {"id": "person_taoyuanming_concept_jiannanshan", "source": "person_taoyuanming", "target": "concept_jiannanshan", "type": "关联", "description": "陶渊明是'见南山'诗句的作者"}, {"id": "person_sushi_person_taoyuanming", "source": "person_sushi", "target": "person_taoyuanming", "type": "评价", "description": "苏轼评陶渊明'见南山'胜'望南山'"}, {"id": "person_chenyinkque_concept_ke_ziyin", "source": "person_chenyinkque", "target": "concept_ke_ziyin", "type": "关联", "description": "陈寅恪的名字中'恪'字的正确读音引发讨论"}, {"id": "person_chang_e_concept_changebenyue", "source": "person_chang_e", "target": "concept_changebenyue", "type": "关联", "description": "嫦娥是'奔月'的主角"}, {"id": "person_hanwendi_dynasty_xihan", "source": "person_hanwendi", "target": "dynasty_xihan", "type": "所属朝代", "description": "汉文帝属于西汉"}, {"id": "person_liuzhi_dynasty_donghan_late", "source": "person_liuzhi", "target": "dynasty_donghan_late", "type": "所属朝代", "description": "卢植属于东汉末"}, {"id": "person_marong_dynasty_donghan", "source": "person_marong", "target": "dynasty_donghan", "type": "所属朝代", "description": "马融属于东汉"}, {"id": "person_liubei_dynasty_donghan_late", "source": "person_liubei", "target": "dynasty_donghan_late", "type": "所属朝代", "description": "刘备属于东汉末"}, {"id": "person_dongzhuo_dynasty_donghan_late", "source": "person_dongzhuo", "target": "dynasty_donghan_late", "type": "所属朝代", "description": "董卓属于东汉末"}, {"id": "person_caocao_dynasty_donghan_late", "source": "person_caocao", "target": "dynasty_donghan_late", "type": "所属朝代", "description": "曹操属于东汉末"}, {"id": "person_taoyuanming_dynasty_dongjin", "source": "person_taoyuanming", "target": "dynasty_dongjin", "type": "所属朝代", "description": "陶渊明属于东晋"}, {"id": "person_sushi_dynasty_beisong", "source": "person_sushi", "target": "dynasty_beisong", "type": "所属朝代", "description": "苏轼属于北宋"}, {"id": "person_1_book_1", "source": "person_1", "target": "book_1", "type": "作者", "description": "康素珍是《我的妓女生涯》的作者"}, {"id": "person_1_concept_1", "source": "person_1", "target": "concept_1", "type": "关联", "description": "康素珍的遭遇揭示了旧社会的残酷"}, {"id": "person_6_book_2", "source": "person_6", "target": "book_2", "type": "作者", "description": "郭汝瑰是《郭汝瑰回忆录》的作者"}, {"id": "person_6_person_8", "source": "person_6", "target": "person_8", "type": "兄弟", "description": "郭汝瑰是郭汝栋的弟弟"}, {"id": "person_6_person_14", "source": "person_6", "target": "person_14", "type": "夫妻", "description": "郭汝瑰的妻子是方学兰"}, {"id": "person_6_event_8", "source": "person_6", "target": "event_8", "type": "关联", "description": "郭汝瑰曾在黄埔军校学习"}, {"id": "person_6_event_9", "source": "person_6", "target": "event_9", "type": "参与", "description": "郭汝瑰参加了北伐战争"}, {"id": "person_6_event_6", "source": "person_6", "target": "event_6", "type": "主导", "description": "郭汝瑰整顿暂五师军纪"}, {"id": "person_8_person_20", "source": "person_8", "target": "person_20", "type": "对抗", "description": "郭汝栋屈服于刘湘的压力"}, {"id": "person_2_event_1", "source": "person_2", "target": "event_1", "type": "签署", "description": "袁世凯承认了卖国的二十一条"}, {"id": "person_13_concept_8", "source": "person_13", "target": "concept_8", "type": "提出", "description": "田中义一提出侵华的田中奏折"}, {"id": "person_3_event_2", "source": "person_3", "target": "event_2", "type": "发动", "description": "蒋介石发动四一二政变"}, {"id": "person_3_event_4", "source": "person_3", "target": "event_4", "type": "下令", "description": "蒋介石下令焚毁长沙"}, {"id": "person_3_event_5", "source": "person_3", "target": "event_5", "type": "下令", "description": "蒋介石下令决堤黄河"}, {"id": "person_15_person_6", "source": "person_15", "target": "person_6", "type": "同事", "description": "胡琏与郭汝瑰在抗日战争中共事"}, {"id": "person_16_person_6", "source": "person_16", "target": "person_6", "type": "战友", "description": "韩炼成是郭汝瑰的好友，实际上是共产党员"}, {"id": "person_18_concept_4", "source": "person_18", "target": "concept_4", "type": "身份", "description": "张叙曾实际上是军统特务"}, {"id": "person_19_concept_5", "source": "person_19", "target": "concept_5", "type": "实施", "description": "戴季韬在暂五师吃缺谎报军饷"}, {"id": "person_7_concept_9", "source": "person_7", "target": "concept_9", "type": "名言", "description": "墨子提出'染于苍则苍，染于黄则黄'"}, {"id": "person_6_concept_9", "source": "person_6", "target": "concept_9", "type": "引用", "description": "郭汝瑰引用墨子染丝比喻自己的经历"}, {"id": "event_1_concept_8", "source": "event_1", "target": "concept_8", "type": "关联", "description": "二十一条与田中奏折都是日本侵华的阴谋"}, {"id": "person_25_book_3", "source": "person_25", "target": "book_3", "type": "主人公", "description": "安娜是《回忆中的玛尼》的主人公"}, {"id": "person_26_book_3", "source": "person_26", "target": "book_3", "type": "关键人物", "description": "玛妮是安娜遇到的神秘女孩"}, {"id": "person_25_person_26", "source": "person_25", "target": "person_26", "type": "相遇", "description": "安娜在海边与玛妮相遇并成为朋友"}, {"id": "person_25_person_27", "source": "person_25", "target": "person_27", "type": "被照顾", "description": "安娜住在佩格太太家"}, {"id": "person_25_person_28", "source": "person_25", "target": "person_28", "type": "被照顾", "description": "普雷斯顿太太付钱照顾安娜"}, {"id": "person_25_person_30", "source": "person_25", "target": "person_30", "type": "被救", "description": "多余儿救了溺水的安娜"}, {"id": "person_25_person_31", "source": "person_25", "target": "person_31", "type": "朋友", "description": "安娜与西拉成为朋友"}, {"id": "person_31_person_32", "source": "person_31", "target": "person_32", "type": "母女", "description": "西拉是林赛太太的女儿"}, {"id": "person_26_person_33", "source": "person_26", "target": "person_33", "type": "夫妻", "description": "玛妮与表兄爱德华结婚"}, {"id": "person_26_person_34", "source": "person_26", "target": "person_34", "type": "母女", "description": "玛妮生下女儿埃斯梅"}, {"id": "person_26_concept_18", "source": "person_26", "target": "concept_18", "type": "关联", "description": "玛妮的故事体现了成长与自我救赎"}, {"id": "person_25_concept_20", "source": "person_25", "target": "concept_20", "type": "关联", "description": "安娜的心理描写体现了儿童心理"}, {"id": "person_26_person_35", "source": "person_26", "target": "person_35", "type": "被虐待", "description": "看护南虐待玛妮"}, {"id": "person_36_concept_22", "source": "person_36", "target": "concept_22", "type": "整理", "description": "许慎整理六书理论"}, {"id": "person_37_concept_24", "source": "person_37", "target": "concept_24", "type": "创立", "description": "传说伏羲画八卦，重为六十四卦"}, {"id": "concept_23_concept_24", "source": "concept_23", "target": "concept_24", "type": "关联", "description": "河图洛书与八卦的传说关联"}, {"id": "person_40_concept_33", "source": "person_40", "target": "concept_33", "type": "开创", "description": "屈原在《离骚》中开创美人香草的比喻"}, {"id": "person_40_person_41", "source": "person_40", "target": "person_41", "type": "师徒", "description": "宋玉是屈原的弟子"}, {"id": "person_50_concept_34", "source": "person_50", "target": "concept_34", "type": "开创", "description": "方苞开创桐城派"}, {"id": "person_51_concept_34", "source": "person_51", "target": "concept_34", "type": "集大成", "description": "姚鼐是桐城派集大成者"}, {"id": "concept_35_concept_34", "source": "concept_35", "target": "concept_34", "type": "影响", "description": "八股文影响了桐城派的形成"}, {"id": "concept_36_concept_35", "source": "concept_36", "target": "concept_35", "type": "反对", "description": "白话文运动反对八股文"}, {"id": "person_52_concept_36", "source": "person_52", "target": "concept_36", "type": "推动", "description": "梁启超的'新文体'为白话文运动铺路"}, {"id": "person_53_concept_36", "source": "person_53", "target": "concept_36", "type": "倡导", "description": "胡适是白话文运动的主要倡导者"}, {"id": "person_43_concept_31", "source": "person_43", "target": "concept_31", "type": "代表", "description": "苏秦是合纵派代表"}, {"id": "person_44_concept_31", "source": "person_44", "target": "concept_31", "type": "代表", "description": "张仪是连横派代表"}, {"id": "concept_31_concept_32", "source": "concept_31", "target": "concept_32", "type": "包含", "description": "儒墨道法是诸子百家中最重要的四家"}, {"id": "person_54_concept_29", "source": "person_54", "target": "concept_29", "type": "创立", "description": "司马迁创立纪传体"}, {"id": "person_47_concept_27", "source": "person_47", "target": "concept_27", "type": "关联", "description": "秦始皇焚书坑儒与礼教问题关联"}, {"id": "person_74_book_5", "source": "person_74", "target": "book_5", "type": "主人公", "description": "安迪是《凶火》的主人公之一"}, {"id": "person_76_book_5", "source": "person_76", "target": "book_5", "type": "核心人物", "description": "查莉是《凶火》的核心人物"}, {"id": "person_74_person_75", "source": "person_74", "target": "person_75", "type": "夫妻", "description": "安迪与薇姬是夫妻"}, {"id": "person_74_person_76", "source": "person_74", "target": "person_76", "type": "父女", "description": "安迪是查莉的父亲"}, {"id": "person_75_person_76", "source": "person_75", "target": "person_76", "type": "母女", "description": "薇姬是查莉的母亲"}, {"id": "person_76_concept_37", "source": "person_76", "target": "concept_37", "type": "拥有", "description": "查莉拥有点燃物体的超能力"}, {"id": "person_77_concept_39", "source": "person_77", "target": "concept_39", "type": "成员", "description": "雨鸟是商店组织的特工"}, {"id": "concept_37_concept_38", "source": "concept_37", "target": "concept_38", "type": "来源", "description": "超能力来自政府人体实验"}, {"id": "concept_39_concept_38", "source": "concept_39", "target": "concept_38", "type": "实施", "description": "商店组织是实施人体实验的政府机构"}, {"id": "person_78_book_6", "source": "person_78", "target": "book_6", "type": "作者", "description": "萨提亚是《萨提亚深层沟通力》的理论来源"}, {"id": "person_78_book_7", "source": "person_78", "target": "book_7", "type": "作者", "description": "萨提亚是《新家庭如何塑造人》的作者"}, {"id": "person_78_concept_40", "source": "person_78", "target": "concept_40", "type": "创立", "description": "萨提亚创立冰山模型"}, {"id": "person_78_concept_46", "source": "person_78", "target": "concept_46", "type": "理论", "description": "萨提亚提出自我价值感理论"}, {"id": "person_78_concept_47", "source": "person_78", "target": "concept_47", "type": "提出", "description": "萨提亚提出五种沟通模式"}, {"id": "person_78_concept_48", "source": "person_78", "target": "concept_48", "type": "提出", "description": "萨提亚提出家庭系统理论"}, {"id": "person_79_book_9", "source": "person_79", "target": "book_9", "type": "主人公", "description": "秦恬是《战起1938》女主角"}, {"id": "person_80_book_9", "source": "person_80", "target": "book_9", "type": "关键人物", "description": "奥古斯汀是《战起1938》核心人物"}, {"id": "person_81_book_9", "source": "person_81", "target": "book_9", "type": "关键人物", "description": "海因茨上尉是《战起1938》重要人物"}, {"id": "person_79_person_80", "source": "person_79", "target": "person_80", "type": "相爱", "description": "秦恬与奥古斯汀在乱世中产生深厚感情"}, {"id": "person_79_person_81", "source": "person_79", "target": "person_81", "type": "情感羁绊", "description": "秦恬与海因茨上尉产生特殊情感羁绊"}, {"id": "person_80_person_90", "source": "person_80", "target": "person_90", "type": "灵魂", "description": "奥古斯汀的灵魂是中国军官罗桐"}, {"id": "person_90_event_18", "source": "person_90", "target": "event_18", "type": "参与", "description": "罗桐参加过斯大林格勒战役"}, {"id": "person_79_event_13", "source": "person_79", "target": "event_13", "type": "见证", "description": "秦恬穿越到水晶之夜"}, {"id": "person_79_event_14", "source": "person_79", "target": "event_14", "type": "见证", "description": "秦恬见证闪电战波兰"}, {"id": "person_79_event_16", "source": "person_79", "target": "event_16", "type": "见证", "description": "秦恬见证敦刻尔克大撤退"}, {"id": "person_79_event_17", "source": "person_79", "target": "event_17", "type": "见证", "description": "秦恬见证诺曼底登陆"}, {"id": "person_82_book_10", "source": "person_82", "target": "book_10", "type": "主人公", "description": "亚瑟/牛虻是《牛虻》的主人公"}, {"id": "person_83_book_10", "source": "person_83", "target": "book_10", "type": "关键人物", "description": "蒙泰尼里是《牛虻》核心人物"}, {"id": "person_84_book_10", "source": "person_84", "target": "book_10", "type": "关键人物", "description": "琼玛是《牛虻》核心人物"}, {"id": "person_87_book_10", "source": "person_87", "target": "book_10", "type": "作者", "description": "伏尼契是《牛虻》的作者"}, {"id": "person_82_person_83", "source": "person_82", "target": "person_83", "type": "父子", "description": "亚瑟是蒙泰尼里的私生子"}, {"id": "person_82_person_84", "source": "person_82", "target": "person_84", "type": "恋人", "description": "亚瑟深爱琼玛"}, {"id": "person_82_person_85", "source": "person_82", "target": "person_85", "type": "同志", "description": "亚瑟与波拉是青年意大利党同志"}, {"id": "person_82_person_86", "source": "person_82", "target": "person_86", "type": "被欺骗", "description": "亚瑟被卡尔狄神父欺骗而出卖同志"}, {"id": "person_82_event_19", "source": "person_82", "target": "event_19", "type": "参与", "description": "亚瑟参与青年意大利党运动"}, {"id": "person_82_event_20", "source": "person_82", "target": "event_20", "type": "经历", "description": "亚瑟经历信仰崩塌"}, {"id": "person_82_event_21", "source": "person_82", "target": "event_21", "type": "牺牲", "description": "牛虻被蒙泰尼里下令处死"}, {"id": "person_83_event_21", "source": "person_83", "target": "event_21", "type": "处死", "description": "蒙泰尼里在亲情与信仰间选择，下令处死牛虻"}, {"id": "person_87_person_88", "source": "person_87", "target": "person_88", "type": "祖孙", "description": "韩丁是伏尼契的孙子"}, {"id": "person_87_person_89", "source": "person_87", "target": "person_89", "type": "祖孙", "description": "寒春是伏尼契的孙女"}, {"id": "person_88_concept_59", "source": "person_88", "target": "concept_59", "type": "关联", "description": "韩丁受《西行漫记》影响来到中国"}, {"id": "person_89_concept_59", "source": "person_89", "target": "concept_59", "type": "关联", "description": "寒春在中国从事农业科技工作六十年"}, {"id": "person_40_book_chuci", "source": "person_40", "target": "book_chuci", "type": "关联", "description": "屈原是《楚辞》的代表作者"}, {"id": "concept_langmanzhuyi_book_chuci", "source": "concept_langmanzhuyi", "target": "book_chuci", "type": "关联", "description": "浪漫主义是楚辞的典型艺术风格"}, {"id": "concept_bixing_book_chuci", "source": "concept_bixing", "target": "book_chuci", "type": "关联", "description": "比兴手法是楚辞的重要艺术手法"}, {"id": "concept_xiangcao_book_chuci", "source": "concept_xiangcao", "target": "book_chuci", "type": "关联", "description": "香草象征是屈原开创的艺术手法"}, {"id": "concept_chuguowenhua_book_chuci", "source": "concept_chuguowenhua", "target": "book_chuci", "type": "关联", "description": "楚国文化是楚辞的文化背景"}, {"id": "concept_shangwu_book_chuci", "source": "concept_shangwu", "target": "book_chuci", "type": "关联", "description": "尚武精神体现在《国殇》等楚辞篇章中"}, {"id": "concept_zhiniao_person_40", "source": "concept_zhiniao", "target": "person_40", "type": "关联", "description": "屈原创作'鸷鸟之不群'表达坚守品格"}, {"id": "person_aositeluofu_book_gangtie", "source": "person_aositeluofu", "target": "book_gangtie", "type": "作者", "description": "奥斯特洛夫斯基是《钢铁是怎样炼成的》作者"}, {"id": "person_baoer_book_gangtie", "source": "person_baoer", "target": "book_gangtie", "type": "主人公", "description": "保尔·柯察金是小说主人公"}, {"id": "person_dongniya_book_gangtie", "source": "person_dongniya", "target": "book_gangtie", "type": "关键人物", "description": "冬妮娅是小说重要人物"}, {"id": "person_zhufulai_book_gangtie", "source": "person_zhufulai", "target": "book_gangtie", "type": "关键人物", "description": "朱赫来是保尔的革命引路人"}, {"id": "person_baoer_person_zhufulai", "source": "person_baoer", "target": "person_zhufulai", "type": "师徒", "description": "朱赫来教会保尔拳击和革命知识"}, {"id": "person_baoer_person_dongniya", "source": "person_baoer", "target": "person_dongniya", "type": "恋人", "description": "保尔与冬妮娅曾有美好恋情"}, {"id": "person_baoer_event_shijiegeming", "source": "person_baoer", "target": "event_shijiegeming", "type": "关联", "description": "保尔经历了十月革命后的苏联时代"}, {"id": "concept_gangtie_person_baoer", "source": "concept_gangtie", "target": "person_baoer", "type": "体现", "description": "保尔的经历体现钢铁意志"}, {"id": "concept_lixiang_person_baoer", "source": "concept_lixiang", "target": "person_baoer", "type": "体现", "description": "保尔体现理想信念的力量"}, {"id": "concept_zhige_person_baoer", "source": "concept_zhige", "target": "person_baoer", "type": "体现", "description": "保尔是革命英雄主义的典型"}, {"id": "person_ludingyi_book_xuelei", "source": "person_ludingyi", "target": "book_xuelei", "type": "关联", "description": "陆定一被书中批判为反革命修正主义分子"}, {"id": "person_liuruiheng_book_xuelei", "source": "person_liuruiheng", "target": "book_xuelei", "type": "关联", "description": "刘瑞恒是书中批判的协和院长"}, {"id": "person_douweilian_book_xuelei", "source": "person_douweilian", "target": "book_xuelei", "type": "关联", "description": "窦维廉是书中批判的美帝教授"}, {"id": "person_shidiwenseng_book_xuelei", "source": "person_shidiwenseng", "target": "book_xuelei", "type": "关联", "description": "史蒂文森处理孙中山遗体"}, {"id": "person_chenbaisheng_book_xuelei", "source": "person_chenbaisheng", "target": "book_xuelei", "type": "作者", "description": "陈柏生是人民日报记者，写过《新旧协和》"}, {"id": "person_liushihao_book_xuelei", "source": "person_liushihao", "target": "book_xuelei", "type": "关联", "description": "刘士豪是书中提到的内分泌学家"}, {"id": "person_sunzhongshan_quan_book_xuelei", "source": "person_sunzhongshan_quan", "target": "book_xuelei", "type": "关联", "description": "孙中山逝世后遗体在协和被处理，肝脏被偷"}, {"id": "person_52_book_xuelei", "source": "person_52", "target": "book_xuelei", "type": "关联", "description": "梁启超在协和被误切右肾"}, {"id": "event_beijiren_book_xuelei", "source": "event_beijiren", "target": "book_xuelei", "type": "关联", "description": "北京人头骨化石失踪事件是书中重要内容"}, {"id": "concept_xueyuebanban_book_xuelei", "source": "concept_xueyuebanban", "target": "book_xuelei", "type": "评价", "description": "用户评价：口号多，情绪多，事实少，没啥价值"}, {"id": "person_langjinghe_book_yisheng", "source": "person_langjinghe", "target": "book_yisheng", "type": "作者", "description": "郎景和是《一个医生的故事》作者"}, {"id": "concept_kexue_renwen_book_yisheng", "source": "concept_kexue_renwen", "target": "book_yisheng", "type": "关联", "description": "科学原则+人文原则是书中重要观点"}, {"id": "concept_zhiyulv_book_yisheng", "source": "concept_zhiyulv", "target": "book_yisheng", "type": "关联", "description": "治愈率约1/3是书中提到的医学统计"}, {"id": "concept_xueyigebuzhuan_book_yisheng", "source": "concept_xueyigebuzhuan", "target": "book_yisheng", "type": "关联", "description": "学医而不为医是书中提到的现象"}, {"id": "concept_yishengfansi_book_yisheng", "source": "concept_yishengfansi", "target": "book_yisheng", "type": "评价", "description": "用户评价：内容不少都有重复，可以翻翻"}, {"id": "person_tanxianjie_book_zhiqin", "source": "person_tanxianjie", "target": "book_zhiqin", "type": "作者", "description": "谭先杰是《致母亲》作者"}, {"id": "person_tanxianjie_person_langjinghe", "source": "person_tanxianjie", "target": "person_langjinghe", "type": "师徒", "description": "谭先杰是郎景和的学生"}, {"id": "concept_zhimqinfan_book_zhiqin", "source": "concept_zhimqinfan", "target": "book_zhiqin", "type": "评价", "description": "用户评价：可以随手翻翻"}, {"id": "person_changqing_book_xiehe", "source": "person_changqing", "target": "book_xiehe", "type": "作者", "description": "常青是《协和医事》作者"}, {"id": "person_budasheng_book_xiehe", "source": "person_budasheng", "target": "book_xiehe", "type": "关联", "description": "步达生发现北京人化石"}, {"id": "person_wenyichuan_book_xiehe", "source": "person_wenyichuan", "target": "book_xiehe", "type": "关联", "description": "闻一传是协和解剖系教授"}, {"id": "person_wuxian_book_xiehe", "source": "person_wuxian", "target": "book_xiehe", "type": "关联", "description": "吴宪发明Folin-Wu血液分析法"}, {"id": "person_chenkehui_book_xiehe", "source": "person_chenkehui", "target": "book_xiehe", "type": "关联", "description": "陈克恢完成世界著名的麻黄素研究"}, {"id": "person_songhongzhao_book_xiehe", "source": "person_songhongzhao", "target": "book_xiehe", "type": "关联", "description": "宋鸿钊是著名妇产科专家"}, {"id": "person_lanansheng_book_xiehe", "source": "person_lanansheng", "target": "book_xiehe", "type": "关联", "description": "兰安生提出公共卫生理念"}, {"id": "person_chenzhiqian_book_xiehe", "source": "person_chenzhiqian", "target": "book_xiehe", "type": "关联", "description": "陈志潜开创农村公共卫生"}, {"id": "person_linkesheng_book_xiehe", "source": "person_linkesheng", "target": "book_xiehe", "type": "关联", "description": "林可胜关注农村医疗"}, {"id": "person_humei_book_xiehe", "source": "person_humei", "target": "book_xiehe", "type": "关联", "description": "胡美描述中国医疗危机"}, {"id": "person_lizongen_book_xiehe", "source": "person_lizongen", "target": "book_xiehe", "type": "关联", "description": "李宗恩宣布协和收归国有"}, {"id": "person_wuyingkai_book_xiehe", "source": "person_wuyingkai", "target": "book_xiehe", "type": "关联", "description": "吴英恺提出好医生标准"}, {"id": "event_luosifeinuo_book_xiehe", "source": "event_luosifeinuo", "target": "book_xiehe", "type": "关联", "description": "洛克菲勒接管协和是书中重要事件"}, {"id": "event_xiehetingban_book_xiehe", "source": "event_xiehetingban", "target": "book_xiehe", "type": "关联", "description": "太平洋战争致协和停办"}, {"id": "event_xieheshougui_book_xiehe", "source": "event_xieheshougui", "target": "book_xiehe", "type": "关联", "description": "协和收归国有"}, {"id": "concept_sanji_book_xiehe", "source": "concept_sanji", "target": "book_xiehe", "type": "关联", "description": "三基三严是协和教育理念"}, {"id": "concept_sanbao_book_xiehe", "source": "concept_sanbao", "target": "book_xiehe", "type": "关联", "description": "协和三宝：教授、病案、图书馆"}, {"id": "concept_zhuyuanyisheng_book_xiehe", "source": "concept_zhuyuanyisheng", "target": "book_xiehe", "type": "关联", "description": "住院医生制度是协和教育核心"}, {"id": "concept_banianzhi_book_xiehe", "source": "concept_banianzhi", "target": "book_xiehe", "type": "关联", "description": "八年制教育是协和课程核心"}, {"id": "concept_yubaowangfu_book_xiehe", "source": "concept_yubaowangfu", "target": "book_xiehe", "type": "关联", "description": "豫王府窖藏是协和建校传说"}, {"id": "concept_luosifei_book_xiehe", "source": "concept_luosifei", "target": "book_xiehe", "type": "关联", "description": "洛克菲勒基金会是协和创建者"}, {"id": "concept_xiehewenhua_book_xiehe", "source": "concept_xiehewenhua", "target": "book_xiehe", "type": "关联", "description": "协和文化是全书核心主题"}, {"id": "concept_xiehebiaozhun_book_xiehe", "source": "concept_xiehebiaozhun", "target": "book_xiehe", "type": "关联", "description": "协和标准是协和精神体现"}, {"id": "concept_wunaishi_book_xiehe", "source": "concept_wunaishi", "target": "book_xiehe", "type": "关联", "description": "协和无汉奸是协和气节体现"}, {"id": "concept_luositan_book_xiehe", "source": "concept_luositan", "target": "book_xiehe", "type": "关联", "description": "罗素与洛克菲勒医院的故事"}, {"id": "concept_wuyingkai_biaozhun_person_wuyingkai", "source": "concept_wuyingkai_biaozhun", "target": "person_wuyingkai", "type": "提出", "description": "吴英恺提出好医生标准：公、勤、严、廉"}, {"id": "person_ludingyi_person_liuruiheng", "source": "person_ludingyi", "target": "person_liuruiheng", "type": "庇护", "description": "陆定一庇护刘瑞恒"}, {"id": "person_liuruiheng_person_lanansheng", "source": "person_liuruiheng", "target": "person_lanansheng", "type": "关联", "description": "刘瑞恒由兰安生安排当卫生部长"}, {"id": "person_91_book_11", "source": "person_91", "target": "book_11", "type": "作者", "description": "纪昀是《阅微草堂笔记》的作者"}, {"id": "person_92_book_13", "source": "person_92", "target": "book_13", "type": "作者", "description": "余宗其是《法说聊斋志异》的作者"}, {"id": "person_95_book_14", "source": "person_95", "target": "book_14", "type": "作者", "description": "巴金是《寒夜》的作者"}, {"id": "person_93_book_14", "source": "person_93", "target": "book_14", "type": "主人公", "description": "汪文宣是《寒夜》的主人公"}, {"id": "person_94_book_14", "source": "person_94", "target": "book_14", "type": "关键人物", "description": "曾树生是《寒夜》的关键人物"}, {"id": "person_93_person_94", "source": "person_93", "target": "person_94", "type": "夫妻", "description": "汪文宣与曾树生是夫妻"}, {"id": "person_100_book_18", "source": "person_100", "target": "book_18", "type": "主人公", "description": "袁殊是《我的父亲袁殊》的主人公"}, {"id": "person_100_book_19", "source": "person_100", "target": "book_19", "type": "主人公", "description": "袁殊是《袁殊传记》的主人公"}, {"id": "person_100_person_101", "source": "person_100", "target": "person_101", "type": "上下级", "description": "袁殊在潘汉年领导下工作"}, {"id": "person_100_person_102", "source": "person_100", "target": "person_102", "type": "情报来源", "description": "岩井是袁殊的日本情报来源"}, {"id": "person_107_book_20", "source": "person_107", "target": "book_20", "type": "主人公", "description": "杜月笙是《大流氓杜月笙》的主人公"}, {"id": "person_107_person_108", "source": "person_107", "target": "person_108", "type": "合作", "description": "杜月笙与戴笠有合作关系"}, {"id": "person_113_book_21", "source": "person_113", "target": "book_21", "type": "作者", "description": "陈忠先是《白鹿原》的作者"}, {"id": "person_109_book_21", "source": "person_109", "target": "book_21", "type": "主人公", "description": "白嘉轩是《白鹿原》的主人公"}, {"id": "person_110_book_21", "source": "person_110", "target": "book_21", "type": "关键人物", "description": "鹿子霖是《白鹿原》的关键人物"}, {"id": "person_109_person_110", "source": "person_109", "target": "person_110", "type": "对手", "description": "白嘉轩与鹿子霖是对立的两大家族族长"}, {"id": "person_111_book_21", "source": "person_111", "target": "book_21", "type": "关键人物", "description": "白灵是《白鹿原》的重要人物"}, {"id": "person_112_book_21", "source": "person_112", "target": "book_21", "type": "关键人物", "description": "鹿兆鹏是《白鹿原》的重要人物"}, {"id": "person_116_book_22", "source": "person_116", "target": "book_22", "type": "作者", "description": "海岩是《便衣警察》的作者"}, {"id": "person_116_book_23", "source": "person_116", "target": "book_23", "type": "作者", "description": "海岩是《河流如血》的作者"}, {"id": "person_115_book_22", "source": "person_115", "target": "book_22", "type": "主人公", "description": "周志明是《便衣警察》的主人公"}, {"id": "person_117_book_23", "source": "person_117", "target": "book_23", "type": "主人公", "description": "陆保良是《河流如血》的主人公"}, {"id": "person_123_book_25", "source": "person_123", "target": "book_25", "type": "作者", "description": "胡狼拜月是《刘禹锡传》的作者"}, {"id": "person_120_book_25", "source": "person_120", "target": "book_25", "type": "主人公", "description": "刘禹锡是《刘禹锡传》的主人公"}, {"id": "person_120_person_121", "source": "person_120", "target": "person_121", "type": "挚友", "description": "刘禹锡与柳宗元是挚友，并称刘柳"}, {"id": "person_120_person_122", "source": "person_120", "target": "person_122", "type": "诗友", "description": "刘禹锡与白居易并称刘白"}, {"id": "person_124_book_26", "source": "person_124", "target": "book_26", "type": "作者", "description": "李敖是《李敖自传》的作者"}, {"id": "person_127_book_27", "source": "person_127", "target": "book_27", "type": "作者", "description": "考琳·麦卡洛是《荆棘鸟》的作者"}, {"id": "person_125_book_27", "source": "person_125", "target": "book_27", "type": "主人公", "description": "梅吉是《荆棘鸟》的主人公"}, {"id": "person_126_book_27", "source": "person_126", "target": "book_27", "type": "关键人物", "description": "拉尔夫神父是《荆棘鸟》的关键人物"}, {"id": "person_125_person_126", "source": "person_125", "target": "person_126", "type": "禁忌之恋", "description": "梅吉与拉尔夫之间存在宗教禁忌的爱情"}, {"id": "person_130_book_28", "source": "person_130", "target": "book_28", "type": "作者", "description": "齐橙是《大国重工》的作者"}, {"id": "person_129_book_28", "source": "person_129", "target": "book_28", "type": "主人公", "description": "冯啸辰是《大国重工》的主人公"}, {"id": "person_131_book_29", "source": "person_131", "target": "book_29", "type": "主人公", "description": "吴石是《冷月无声》的主人公"}, {"id": "person_131_person_132", "source": "person_131", "target": "person_132", "type": "夫妻", "description": "吴石与陈碧莲是夫妻"}, {"id": "person_133_book_30", "source": "person_133", "target": "book_30", "type": "作者", "description": "刘士欣是《好看的中国历史故事》的作者"}, {"id": "concept_68_book_11", "source": "concept_68", "target": "book_11", "type": "关联", "description": "因果报应是《阅微草堂笔记》的核心主题"}, {"id": "concept_75_book_15", "source": "concept_75", "target": "book_15", "type": "关联", "description": "CRISPR是《上帝的手术刀》的主题"}, {"id": "concept_88_book_27", "source": "concept_88", "target": "book_27", "type": "核心象征", "description": "荆棘鸟传说是《荆棘鸟》的核心象征"}, {"id": "朱枫_朱晓光", "source": "朱枫", "target": "朱晓光", "type": "夫妻", "description": "革命伴侣"}, {"id": "朱枫_吴石", "source": "朱枫", "target": "吴石", "type": "情报交接", "description": "在台湾秘密接头传递情报"}, {"id": "朱枫_蔡孝乾", "source": "朱枫", "target": "蔡孝乾", "type": "暴露关联", "description": "蔡孝乾被捕叛变导致朱枫身份暴露"}, {"id": "沈安娜_华明之", "source": "沈安娜", "target": "华明之", "type": "夫妻", "description": "革命伴侣，共同潜伏"}, {"id": "沈安娜_周恩来", "source": "沈安娜", "target": "周恩来", "type": "派遣", "description": "受周恩来派遣潜伏"}, {"id": "沈安娜_徐仲航", "source": "沈安娜", "target": "徐仲航", "type": "上下级", "description": "直接领导人"}, {"id": "沈安娜_吴克坚", "source": "沈安娜", "target": "吴克坚", "type": "上下级", "description": "恢复联系后的领导人"}, {"id": "阿列克谢_波琳娜", "source": "阿列克谢", "target": "波琳娜", "type": "暗恋", "description": "深深爱恋"}, {"id": "巴扎罗夫_阿尔卡季", "source": "巴扎罗夫", "target": "阿尔卡季", "type": "挚友", "description": "好友关系"}, {"id": "巴扎罗夫_奥金佐娃", "source": "巴扎罗夫", "target": "奥金佐娃", "type": "单恋", "description": "爱上奥金佐娃被拒绝"}, {"id": "阿尔卡季_尼古拉·基尔萨诺夫", "source": "阿尔卡季", "target": "尼古拉·基尔萨诺夫", "type": "父子", "description": "父子关系"}, {"id": "帕维尔·基尔萨诺夫_巴扎罗夫", "source": "帕维尔·基尔萨诺夫", "target": "巴扎罗夫", "type": "对手", "description": "传统贵族与虚无主义者的对抗"}, {"id": "希斯克利夫_凯瑟琳", "source": "希斯克利夫", "target": "凯瑟琳", "type": "青梅竹马", "description": "深深相爱"}, {"id": "希斯克利夫_辛德雷", "source": "希斯克利夫", "target": "辛德雷", "type": "仇敌", "description": "被虐待的仇恨"}, {"id": "凯瑟琳_埃德加·林顿", "source": "凯瑟琳", "target": "埃德加·林顿", "type": "夫妻", "description": "凯瑟琳嫁给了林顿"}, {"id": "小凯瑟琳_哈里顿", "source": "小凯瑟琳", "target": "哈里顿", "type": "爱情", "description": "走出仇恨循环的新一代"}, {"id": "维特_绿蒂", "source": "维特", "target": "绿蒂", "type": "单恋", "description": "一见钟情却已订婚"}, {"id": "哈姆雷特_克劳狄斯", "source": "哈姆雷特", "target": "克劳狄斯", "type": "仇敌", "description": "叔父弑兄篡位"}, {"id": "哈姆雷特_奥菲莉亚", "source": "哈姆雷特", "target": "奥菲莉亚", "type": "恋人", "description": "深爱却无法在一起"}, {"id": "奥赛罗_苔丝狄蒙娜", "source": "奥赛罗", "target": "苔丝狄蒙娜", "type": "夫妻", "description": "被伊阿古阴谋害死的悲剧"}, {"id": "奥赛罗_伊阿古", "source": "奥赛罗", "target": "伊阿古", "type": "信任被利用", "description": "轻信旗官的谗言"}, {"id": "李尔王_考狄利娅", "source": "李尔王", "target": "考狄利娅", "type": "父女", "description": "小女儿的真诚与悲剧"}, {"id": "麦克白_麦克白夫人", "source": "麦克白", "target": "麦克白夫人", "type": "共谋", "description": "共同弑君"}, {"id": "麦克白_邓肯", "source": "麦克白", "target": "邓肯", "type": "弑君", "description": "杀死国王自立"}];
+        
+        // 时代颜色
+        const eraColors = {"上古": "#8B4513", "西周": "#CD853F", "春秋": "#DAA520", "战国": "#B8860B", "秦": "#696969", "西汉": "#2E8B57", "东汉": "#3CB371", "东汉末": "#20B2AA", "魏晋": "#48D1CC", "东晋": "#40E0D0", "南朝": "#00CED1", "南北朝": "#00FFFF", "唐": "#DC143C", "唐代": "#DC143C", "北宋": "#FFA500", "南宋": "#FF7F50", "元": "#9370DB", "明": "#4169E1", "清": "#8A2BE2", "清代": "#8A2BE2", "近代": "#708090", "现代": "#4682B4", "当代": "#5F9EA0", "神话": "#FF69B4", "19世纪": "#BC8F8F", "18世纪": "#D2B48C", "16-17世纪": "#DAA520", "18-19世纪": "#CD853F", "未知": "#999999"};
+        
+        // 获取所有时代
+        const allEras = [...new Set(nodesData.map(d => d.era))].sort();
+        
+        // 初始化
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        
+        const svg = d3.select("#graph")
+            .attr("width", width)
+            .attr("height", height);
+        
+        // 缩放
+        const g = svg.append("g");
+        
+        const zoom = d3.zoom()
+            .scaleExtent([0.2, 4])
+            .on("zoom", (event) => {
+                g.attr("transform", event.transform);
+            });
+        
+        svg.call(zoom);
+        
+        // 力导向模拟
+        const simulation = d3.forceSimulation()
+            .force("link", d3.forceLink().id(d => d.id).distance(120))
+            .force("charge", d3.forceManyBody().strength(-300))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("collision", d3.forceCollide().radius(40));
+        
+        // 当前筛选状态
+        let activeEras = new Set(allEras);
+        let highlightedNode = null;
+        
+        // 生成连线
+        const links = g.append("g")
+            .attr("class", "links")
+            .selectAll("line")
+            .data(linksData)
+            .enter()
+            .append("line")
+            .attr("class", "link")
+            .attr("data-source", d => d.source)
+            .attr("data-target", d => d.target);
+        
+        // 生成节点组
+        const nodeGroups = g.append("g")
+            .attr("class", "nodes")
+            .selectAll("g")
+            .data(nodesData)
+            .enter()
+            .append("g")
+            .attr("class", "node")
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+        
+        // 节点圆形
+        nodeGroups.append("circle")
+            .attr("class", "node-circle")
+            .attr("r", d => {
+                // 根据度数计算大小
+                const degree = linksData.filter(l => l.source === d.id || l.target === d.id).length;
+                return Math.min(8 + degree * 2, 25);
+            })
+            .attr("fill", d => d.color);
+        
+        // 节点标签
+        nodeGroups.append("text")
+            .attr("class", "node-label")
+            .attr("dy", 25)
+            .text(d => d.name);
+        
+        // 交互事件
+        nodeGroups
+            .on("mouseover", (event, d) => {
+                showTooltip(event, d);
+                highlightConnections(d);
+            })
+            .on("mouseout", () => {
+                hideTooltip();
+                resetHighlight();
+            })
+            .on("click", (event, d) => {
+                highlightedNode = highlightedNode === d ? null : d;
+                if (highlightedNode) {
+                    highlightConnections(d);
+                } else {
+                    resetHighlight();
+                }
+            });
+        
+        // 更新显示
+        function updateVisibility() {
+            nodeGroups.style("opacity", d => activeEras.has(d.era) ? 1 : 0.1);
+            
+            links.style("opacity", d => {
+                const sourceNode = nodesData.find(n => n.id === d.source);
+                const targetNode = nodesData.find(n => n.id === d.target);
+                return (activeEras.has(sourceNode?.era) && activeEras.has(targetNode?.era)) ? 0.6 : 0.05;
+            });
+            
+            const visibleCount = nodesData.filter(d => activeEras.has(d.era)).length;
+            document.getElementById("stat-visible").textContent = visibleCount;
+        }
+        
+        // 高亮连接
+        function highlightConnections(d) {
+            const connectedIds = new Set([d.id]);
+            
+            linksData.forEach(l => {
+                if (l.source === d.id) connectedIds.add(l.target);
+                if (l.target === d.id) connectedIds.add(l.source);
+            });
+            
+            nodeGroups.style("opacity", n => connectedIds.has(n.id) ? 1 : 0.1);
+            
+            links
+                .classed("highlight", l => l.source === d.id || l.target === d.id)
+                .style("opacity", l => {
+                    if (l.source === d.id || l.target === d.id) return 1;
+                    const sourceNode = nodesData.find(n => n.id === l.source);
+                    const targetNode = nodesData.find(n => n.id === l.target);
+                    return (activeEras.has(sourceNode?.era) && activeEras.has(targetNode?.era)) ? 0.15 : 0.05;
+                });
+        }
+        
+        function resetHighlight() {
+            nodeGroups.style("opacity", d => activeEras.has(d.era) ? 1 : 0.1);
+            links.classed("highlight", false).style("opacity", d => {
+                const sourceNode = nodesData.find(n => n.id === d.source);
+                const targetNode = nodesData.find(n => n.id === d.target);
+                return (activeEras.has(sourceNode?.era) && activeEras.has(targetNode?.era)) ? 0.6 : 0.05;
+            });
+        }
+        
+        // 提示框
+        function showTooltip(event, d) {
+            const connected = linksData.filter(l => l.source === d.id || l.target === d.id);
+            const relations = connected.map(l => {
+                const otherId = l.source === d.id ? l.target : l.source;
+                const other = nodesData.find(n => n.id === otherId);
+                return `• ${other?.name || otherId}: ${l.description || l.type}`;
+            }).slice(0, 5);
+            
+            const tooltip = document.getElementById("tooltip");
+            tooltip.innerHTML = `
+                <h4>${d.name}</h4>
+                <span class="era-badge" style="background: ${d.color}">${d.era}</span>
+                <p>${d.description}</p>
+                ${relations.length > 0 ? `<p style="color:#ffd700;margin-top:10px;">相关关系:</p>${relations.join('<br>')}` : ''}
+                ${d.source ? `<p class="source">📖 来源: ${d.source}</p>` : ''}
+            `;
+            tooltip.style.display = "block";
+            tooltip.style.left = (event.pageX + 15) + "px";
+            tooltip.style.top = (event.pageY + 15) + "px";
+        }
+        
+        function hideTooltip() {
+            document.getElementById("tooltip").style.display = "none";
+        }
+        
+        // 拖拽
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+        
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+        
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+        
+        // 模拟更新
+        simulation.nodes(nodesData).on("tick", () => {
+            links
+                .attr("x1", d => d.source.x || d.source)
+                .attr("y1", d => d.source.y || d.source)
+                .attr("x2", d => d.target.x || d.target)
+                .attr("y2", d => d.target.y || d.target);
+            
+            nodeGroups.attr("transform", d => `translate(${d.x || 0},${d.y || 0})`);
+        });
+        
+        simulation.force("link").links(linksData.map(l => ({
+            ...l,
+            source: l.source,
+            target: l.target
+        })));
+        
+        // 初始化筛选器
+        function initFilters() {
+            const container = document.getElementById("era-filters");
+            const eraCounts = {};
+            
+            nodesData.forEach(d => {
+                eraCounts[d.era] = (eraCounts[d.era] || 0) + 1;
+            });
+            
+            allEras.forEach(era => {
+                const color = eraColors[era] || "#999";
+                container.innerHTML += `
+                    <div class="era-filter">
+                        <input type="checkbox" id="era-${era}" checked onchange="toggleEra('${era}')">
+                        <span class="era-color" style="background:${color}"></span>
+                        <label for="era-${era}">${era}</label>
+                        <span class="era-count">${eraCounts[era] || 0}</span>
+                    </div>
+                `;
+            });
+        }
+        
+        function toggleEra(era) {
+            if (activeEras.has(era)) {
+                activeEras.delete(era);
+            } else {
+                activeEras.add(era);
+            }
+            updateVisibility();
+        }
+        
+        // 搜索功能
+        document.getElementById("search-btn").addEventListener("click", search);
+        document.getElementById("search-input").addEventListener("keypress", e => {
+            if (e.key === "Enter") search();
+        });
+        document.getElementById("reset-btn").addEventListener("click", resetSearch);
+        
+        function search() {
+            const query = document.getElementById("search-input").value.trim().toLowerCase();
+            if (!query) return;
+            
+            const match = nodesData.find(n => n.name.toLowerCase().includes(query));
+            if (match) {
+                const node = nodeGroups.filter(n => n.id === match.id);
+                if (node.empty()) return;
+                
+                const d = node.datum();
+                highlightedNode = d;
+                highlightConnections(d);
+                
+                // 聚焦到该节点
+                const transform = d3.zoomTransform(svg.node());
+                svg.transition().duration(750).call(
+                    zoom.transform,
+                    d3.zoomIdentity
+                        .translate(width / 2, height / 2)
+                        .scale(transform.k)
+                        .translate(-(d.x || 0), -(d.y || 0))
+                );
+                
+                // 显示提示
+                showTooltip({pageX: width/2, pageY: height/2 - 100}, d);
+                setTimeout(hideTooltip, 3000);
+            }
+        }
+        
+        function resetSearch() {
+            document.getElementById("search-input").value = "";
+            highlightedNode = null;
+            resetHighlight();
+        }
+        
+        // 初始化图例
+        function initLegend() {
+            const container = document.getElementById("legend-items");
+            allEras.slice(0, 8).forEach(era => {
+                const color = eraColors[era] || "#999";
+                container.innerHTML += `
+                    <div class="legend-item">
+                        <span class="legend-color" style="background:${color}"></span>
+                        ${era}
+                    </div>
+                `;
+            });
+        }
+        
+        // 窗口大小变化
+        window.addEventListener("resize", () => {
+            svg.attr("width", window.innerWidth).attr("height", window.innerHeight);
+            simulation.force("center", d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2));
+            simulation.alpha(0.3).restart();
+        });
+        
+        // 启动
+        initFilters();
+        initLegend();
+        updateVisibility();
+    </script>
+</body>
+</html>
