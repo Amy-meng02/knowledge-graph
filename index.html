@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>梦梦的知识图谱 - 首页</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'SimHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .header { text-align: center; padding: 60px 20px; }
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #ffd700, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header p { color: #a0a0a0; font-size: 1.2em; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.1); }
+        .stat-number { font-size: 2.5em; font-weight: bold; color: #ffd700; }
+        .stat-label { color: #a0a0a0; margin-top: 5px; }
+        .section-title {
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title span { font-size: 0.6em; background: rgba(255,215,0,0.2); padding: 3px 10px; border-radius: 10px; }
+        .timeline-grid, .graph-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .card-title { font-size: 1.3em; font-weight: bold; margin-bottom: 10px; color: #ffd700; }
+        .card-desc { color: #ccc; font-size: 0.95em; line-height: 1.5; }
+        .card-meta { margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .tag { background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 15px; font-size: 0.85em; }
+        .era-tag { background: rgba(100,180,255,0.2); }
+        .count-tag { background: rgba(255,215,0,0.2); }
+        .footer { text-align: center; padding: 40px; color: #666; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 梦梦的知识图谱</h1>
+            <p>初中语文老师的专属知识库 | 历史人物 · 文学典故 · 读书笔记</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">234</div>
+                <div class="stat-label">人物</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">41</div>
+                <div class="stat-label">历史事件</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">237</div>
+                <div class="stat-label">关系链接</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">54</div>
+                <div class="stat-label">读书笔记</div>
+            </div>
+        </div>
+        
+        <h2 class="section-title">📜 历史年表 <span>按时代拆分</span></h2>
+        <div class="timeline-grid">
+            <a href="年表-先秦两汉.html" class="card">
+                <div class="card-title">先秦两汉</div>
+                <div class="card-desc">伏羲、仓颉、周公、孔子、老子、孟子、屈原、司马迁等</div>
+                <div class="card-meta">
+                    <span class="tag era-tag">先秦·秦·两汉</span>
+                    <span class="tag count-tag">28人物</span>
+                </div>
+            </a>
+            <a href="年表-魏晋南北朝.html" class="card">
+                <div class="card-title">魏晋南北朝</div>
+                <div class="card-desc">阮籍、陶渊明、谢灵运等</div>
+                <div class="card-meta">
+                    <span class="tag era-tag">魏晋·东晋·南北朝</span>
+                    <span class="tag count-tag">3人物</span>
+                </div>
+            </a>
+            <a href="年表-唐宋.html" class="card">
+                <div class="card-title">唐宋元</div>
+                <div class="card-desc">李白、杜甫、白居易、苏轼、朱熹、岳飞等</div>
+                <div class="card-meta">
+                    <span class="tag era-tag">唐·宋·元</span>
+                    <span class="tag count-tag">17人物</span>
+                </div>
+            </a>
+            <a href="年表-明清近代.html" class="card">
+                <div class="card-title">明清近代</div>
+                <div class="card-desc">袁世凯、蒋介石、郭汝瑰、朱枫、沈安娜等</div>
+                <div class="card-meta">
+                    <span class="tag era-tag">明·清·近代</span>
+                    <span class="tag count-tag">78人物</span>
+                </div>
+            </a>
+            <a href="年表-现代.html" class="card">
+                <div class="card-title">现代</div>
+                <div class="card-desc">保尔·柯察金、安娜、秦恬、巴金、陈忠实等</div>
+                <div class="card-meta">
+                    <span class="tag era-tag">现代·当代</span>
+                    <span class="tag count-tag">72人物</span>
+                </div>
+            </a>
+        </div>
+        
+        <h2 class="section-title">🔗 人物关系图 <span>按时代拆分</span></h2>
+        <div class="graph-grid">
+            <a href="关系图-先秦两汉.html" class="card">
+                <div class="card-title">先秦两汉关系图</div>
+                <div class="card-desc">儒家、道家、法家、纵横家...诸子百家人物关系</div>
+                <div class="card-meta">
+                    <span class="tag era-tag">28人物</span>
+                    <span class="tag count-tag">可视化</span>
+                </div>
+            </a>
+            <a href="关系图-魏晋南北朝.html" class="card">
+                <div class="card-title">魏晋南北朝关系图</div>
+                <div class="card-desc">竹林七贤、山水诗派...</div>
+                <div class="card-meta">
+                    <span class="tag era-tag">3人物</span>
+                    <span class="tag count-tag">可视化</span>
+                </div>
+            </a>
+            <a href="关系图-唐宋元.html" class="card">
+                <div class="card-title">唐宋元关系图</div>
+                <div class="card-desc">诗人、词人、理学家...唐宋八大家</div>
+                <div class="card-meta">
+                    <span class="tag era-tag">17人物</span>
+                    <span class="tag count-tag">可视化</span>
+                </div>
+            </a>
+            <a href="关系图-明清近代.html" class="card">
+                <div class="card-title">明清近代关系图</div>
+                <div class="card-desc">军阀、特工、革命者、民国风云人物</div>
+                <div class="card-meta">
+                    <span class="tag era-tag">78人物</span>
+                    <span class="tag count-tag">可视化</span>
+                </div>
+            </a>
+            <a href="关系图-现代.html" class="card">
+                <div class="card-title">现代关系图</div>
+                <div class="card-desc">二战穿越者、革命者、协和医生...</div>
+                <div class="card-meta">
+                    <span class="tag era-tag">72人物</span>
+                    <span class="tag count-tag">可视化</span>
+                </div>
+            </a>
+            <a href="关系图-文学人物.html" class="card">
+                <div class="card-title">文学人物关系图</div>
+                <div class="card-desc">莎士比亚戏剧、陀思妥耶夫斯基、歌德...名著角色</div>
+                <div class="card-meta">
+                    <span class="tag era-tag">35人物</span>
+                    <span class="tag count-tag">可视化</span>
+                </div>
+            </a>
+        </div>
+        
+        <div class="footer">
+            <p>💡 提示：点击卡片进入对应时代的知识图谱</p>
+            <p>📖 数据来源：知识库 v1.4.0 | 更新日期：2025-05-16</p>
+        </div>
+    </div>
+</body>
+</html>
