@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史年表 - 唐宋 | 梦梦的知识图谱</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'SimHei', sans-serif;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            color: #fff;
+            z-index: 100;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        .back-link:hover { background: rgba(255,255,255,0.2); }
+        .header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ffd700, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header p { color: #a0a0a0; font-size: 1.1em; }
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+        }
+        .stat-item {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 20px;
+            border-radius: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .section { margin-bottom: 50px; }
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-icon { font-size: 1.2em; }
+        .persons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        .person-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+        .person-card:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+        .person-name {
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        .person-era { color: #888; font-size: 0.85em; margin-left: 8px; }
+        .person-desc {
+            color: #ccc;
+            font-size: 0.9em;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        .person-source { color: #666; font-size: 0.8em; margin-top: 8px; }
+        .person-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+        .tag {
+            background: rgba(100,180,255,0.2);
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 0.8em;
+        }
+        .events-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .event-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .event-name { font-weight: bold; color: #ff6b6b; font-size: 1.1em; margin-bottom: 8px; }
+        .event-desc { color: #ccc; font-size: 0.95em; line-height: 1.5; }
+        .event-source { color: #666; font-size: 0.8em; margin-top: 8px; }
+        .empty { text-align: center; color: #666; padding: 40px; }
+    </style>
+</head>
+<body>
+    <a href="首页.html" class="back-link">← 返回首页</a>
+    <div class="header">
+        <h1>📜 唐宋年表</h1>
+        <p>历史人物与事件</p>
+        <div class="stats">
+            <span class="stat-item">👤 17 人物</span>
+            <span class="stat-item">📅 1 事件</span>
+        </div>
+    </div>
+    <div class="container">
+
+        <div class="section">
+            <h2 class="section-title"><span class="section-icon">📅</span>历史事件</h2>
+            <div class="events-list">
+
+                <div class="event-card">
+                    <div class="event-name">永贞革新 <span style="color:#888;font-weight:normal;font-size:0.9em">(唐代)</span></div>
+                    <div class="event-desc">唐顺宗时期的政治改革，刘禹锡参与其中</div>
+                    <div class="event-source">📚 刘禹锡传</div>
+                </div>
+</div></div>
+        <div class="section">
+            <h2 class="section-title"><span class="section-icon">👤</span>历史人物</h2>
+            <div class="persons-grid">
+
+                <div class="person-card">
+                    <div class="person-name">苏轼/苏东坡<span class="person-era">北宋</span></div>
+                    <div class="person-desc">北宋文学家、书画家。曾评陶渊明'见南山'胜'望南山'，辨明读音</div>
+                    <div class="person-source">📚 咬文嚼字二百问</div>
+                    <div class="person-tags"><span class="tag">文学家</span><span class="tag">北宋</span><span class="tag">诗词</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">朱熹<span class="person-era">南宋</span></div>
+                    <div class="person-desc">理学家，宋明理学的代表人物</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">理学家</span><span class="tag">宋明理学</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">程颢<span class="person-era">北宋</span></div>
+                    <div class="person-desc">理学家，宋明理学的奠基人之一</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">理学家</span><span class="tag">宋明理学</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">程颐<span class="person-era">北宋</span></div>
+                    <div class="person-desc">理学家，程颢之弟</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">理学家</span><span class="tag">宋明理学</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">欧阳修<span class="person-era">北宋</span></div>
+                    <div class="person-desc">文学家，唐宋八大家之一</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">文学家</span><span class="tag">北宋</span><span class="tag">唐宋八大家</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">李白<span class="person-era">唐</span></div>
+                    <div class="person-desc">诗人，'诗仙'</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">诗人</span><span class="tag">唐</span><span class="tag">诗仙</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">杜甫<span class="person-era">唐</span></div>
+                    <div class="person-desc">诗人，'诗圣'</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">诗人</span><span class="tag">唐</span><span class="tag">诗圣</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">白居易<span class="person-era">唐</span></div>
+                    <div class="person-desc">诗人，新乐府运动倡导者</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">诗人</span><span class="tag">唐</span><span class="tag">新乐府</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">李商隐<span class="person-era">唐</span></div>
+                    <div class="person-desc">诗人，晚唐诗人的代表</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">诗人</span><span class="tag">唐</span><span class="tag">晚唐</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">杜牧<span class="person-era">唐</span></div>
+                    <div class="person-desc">诗人，与李商隐并称'小李杜'</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">诗人</span><span class="tag">唐</span><span class="tag">晚唐</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">苏轼<span class="person-era">北宋</span></div>
+                    <div class="person-desc">文学家，书画家</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">文学家</span><span class="tag">北宋</span><span class="tag">诗词</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">黄庭坚<span class="person-era">北宋</span></div>
+                    <div class="person-desc">诗人，江西诗派开创者</div>
+                    <div class="person-source">📚 经典常谈</div>
+                    <div class="person-tags"><span class="tag">诗人</span><span class="tag">北宋</span><span class="tag">江西诗派</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">刘禹锡<span class="person-era">唐代</span></div>
+                    <div class="person-desc">唐代诗人，字梦得，与柳宗元并称刘柳</div>
+                    <div class="person-source">📚 刘禹锡传</div>
+                    <div class="person-tags"><span class="tag">诗人</span><span class="tag">唐代</span><span class="tag">刘柳</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">柳宗元<span class="person-era">唐代</span></div>
+                    <div class="person-desc">唐代文学家，与刘禹锡为挚友</div>
+                    <div class="person-source">📚 刘禹锡传</div>
+                    <div class="person-tags"><span class="tag">文学家</span><span class="tag">唐代</span><span class="tag">韩柳</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">白居易<span class="person-era">唐代</span></div>
+                    <div class="person-desc">唐代诗人，与刘禹锡并称刘白</div>
+                    <div class="person-source">📚 刘禹锡传</div>
+                    <div class="person-tags"><span class="tag">诗人</span><span class="tag">唐代</span><span class="tag">新乐府</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">武则天<span class="person-era">唐</span></div>
+                    <div class="person-desc">中国历史上唯一的女皇帝</div>
+                    <div class="person-source">📚 好看的中国历史故事</div>
+                    <div class="person-tags"><span class="tag">皇帝</span><span class="tag">女皇</span><span class="tag">唐朝</span></div>
+                </div>
+
+                <div class="person-card">
+                    <div class="person-name">岳飞<span class="person-era">南宋</span></div>
+                    <div class="person-desc">南宋抗金名将，精忠报国</div>
+                    <div class="person-source">📚 好看的中国历史故事</div>
+                    <div class="person-tags"><span class="tag">将领</span><span class="tag">南宋</span><span class="tag">抗金</span><span class="tag">忠义</span></div>
+                </div>
+</div></div>
+    </div>
+</body>
+</html>
